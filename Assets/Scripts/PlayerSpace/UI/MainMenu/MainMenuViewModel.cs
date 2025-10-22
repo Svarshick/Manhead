@@ -36,6 +36,7 @@ namespace PlayerSpace.UI.MainMenu
                 SceneNames.GameStarter, 
                 builder => builder.RegisterInstance(save))
                 .Forget();
+            _externalSceneLoader.UnloadScene(SceneNames.MainMenu);
         }
 
         public override void Dispose()
