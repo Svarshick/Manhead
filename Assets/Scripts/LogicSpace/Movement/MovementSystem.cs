@@ -1,6 +1,8 @@
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
+using UnityEngine.Rendering;
 
 namespace LogicSpace
 {
@@ -14,26 +16,33 @@ namespace LogicSpace
                 case Direction.Down: await Move(cancellationToken, cell, Vector2Int.down); break;
                 case Direction.Left: await Move(cancellationToken, cell, Vector2Int.left); break;
                 case Direction.Right: await Move(cancellationToken, cell, Vector2Int.right); break;
-                default: throw new System.NotImplementedException();
+                default: throw new NotImplementedException();
             }
-        }
-
-        public static async UniTask Move(CancellationToken cancellationToken, Cell cell, Vector2 direction)
-        {
-            if (direction == Vector2.up) await Move(cancellationToken, cell, Vector2Int.up);
-            else if (direction == Vector2.down) await Move(cancellationToken, cell, Vector2Int.down);
-            else if (direction == Vector2.left) await Move(cancellationToken, cell, Vector2Int.left);
-            else if (direction == Vector2.right) await Move(cancellationToken, cell, Vector2Int.right);
-            else throw new System.NotImplementedException();
         }
 
         private static async UniTask Move(CancellationToken cancellationToken, Cell cell, Vector2Int direction)
         {
             var cellPosition = cell.Field.GridPosition;
-            var targetField = cell.Field.Grid.Fields[cellPosition + direction];
+            if (!cell.Field.Grid.Fields.TryGetValue(cellPosition + direction, out var targetField))
+            {
+                throw new ArgumentOutOfRangeException($"field {cellPosition + direction} does not exist");
+            }
             var targetPosition = targetField.WorldPosition;
             await MovementUtils.MoveTowards(cancellationToken, cell.gameObject, targetPosition, cell.Speed);
             cell.ChangeField(targetField);
+        }
+
+        public static bool CanMove(Cell cell, Direction direction)
+        {
+            var cellPosition = cell.Field.GridPosition;
+            var directionVector = DirectionUtils.DirectionToVector2Int(direction);
+            return cell.Field.Grid.Fields.ContainsKey(cellPosition + directionVector);
+        }
+
+        public static bool CanMove(FieldsGrid fieldsGrid, Vector2Int fromPosition, Direction direction)
+        {
+            var directionVector = DirectionUtils.DirectionToVector2Int(direction);
+            return fieldsGrid.Fields.ContainsKey(fromPosition + directionVector);
         }
     }
 }
