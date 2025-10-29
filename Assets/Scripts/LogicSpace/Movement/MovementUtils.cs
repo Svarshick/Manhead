@@ -2,7 +2,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace LogicSpace
+namespace LogicSpace.Movement
 {
     public static class MovementUtils
     {

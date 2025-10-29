@@ -1,6 +1,4 @@
-using System;
-
-namespace LogicSpace
+namespace LogicSpace.Movement
 {
     public interface IMovementType
     {

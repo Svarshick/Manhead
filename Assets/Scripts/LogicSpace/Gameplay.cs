@@ -1,6 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using Cysharp.Threading.Tasks;
+using LogicSpace.Movement;
+using LogicSpace.Predictor;
 using UnityEngine;
 using UnityEngine.InputSystem;
 using UnityEngine.Tilemaps;
@@ -18,8 +21,9 @@ namespace LogicSpace
 
         private State _state;
         private FieldsGrid _fieldsGrid;
-        private List<Cell> _cells;
+        private List<Cell.Cell> _cells;
         private InputAction _moveAction;
+        private Predictor.Predictor _predictor = new();
         
         public Gameplay(Tilemap tilemap)
         {
@@ -55,7 +59,7 @@ namespace LogicSpace
                 }
             }
 
-            foreach (var cell in tilemap.GetComponentsInChildren<Cell>())
+            foreach (var cell in tilemap.GetComponentsInChildren<Cell.Cell>())
             {
                 var cellPosition = (Vector2Int) fieldsGrid.Tilemap.WorldToCell(cell.transform.position);
                 fieldsGrid.Fields[cellPosition].Cells.Add(cell);
@@ -65,9 +69,9 @@ namespace LogicSpace
             return fieldsGrid;
         }
         
-        private List<Cell> ExtractCells(FieldsGrid fieldsGrid)
+        private List<Cell.Cell> ExtractCells(FieldsGrid fieldsGrid)
         {
-            var cells = new List<Cell>(fieldsGrid.Width * fieldsGrid.Height);
+            var cells = new List<Cell.Cell>(fieldsGrid.Width * fieldsGrid.Height);
             foreach (var (_, field) in fieldsGrid.Fields)
             {
                 cells.AddRange(field.Cells);
@@ -79,7 +83,7 @@ namespace LogicSpace
         {
             if (_state == State.ProcessingTurn)
                 return;
-            var playerDirection = DirectionUtils.Vector2ToDirection(context.ReadValue<Vector2>());
+            var playerDirection = context.ReadValue<Vector2>().ToDirection();
             if (playerDirection == Direction.Ambiguous)
                 return;
             
@@ -102,13 +106,27 @@ namespace LogicSpace
                     var step = movement.GetNextStep();
                     if (step == null)
                         break;
-                    await MovementSystem.Move(cell.GetCancellationTokenOnDestroy(), cell, (Direction)step);
+                    var future = _predictor.Predict(cell, (Direction)step);
+                    await DoFuture(future);
                 }
                 await UniTask.Delay(1000);
             }
             EndTurn();
         }
 
+        private async UniTask DoFuture(IEnumerable<IRequest> future)
+        {
+            if (future.Any(request => request is StopRequest))
+            {
+                return;
+            }
+            foreach (var moveRequest in future.OfType<MoveRequest>())
+            {
+                var targetCell = moveRequest.target;
+                await MovementSystem.Move(targetCell.GetCancellationTokenOnDestroy(), targetCell, moveRequest.direction);
+            }
+        }
+        
         private void EndTurn()
         {
             _state = State.WaitingDecision;

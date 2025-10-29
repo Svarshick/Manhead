@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace LogicSpace
+namespace LogicSpace.Movement
 {
     public class AllTheWayMovement : IMovementType
     {
@@ -19,7 +19,7 @@ namespace LogicSpace
         {
             if (!MovementSystem.CanMove(_fieldsGrid, _currentPosition, _direction))
                 return null;
-            _currentPosition += DirectionUtils.DirectionToVector2Int(_direction);
+            _currentPosition += _direction.ToVector2Int();
             return _direction;
         }
     }
