@@ -1,13 +1,16 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using LogicSpace.Cells;
+using LogicSpace.Fields;
 using UnityEngine;
 
 namespace LogicSpace.Movement
 {
     public class MovementSystem
     {
-        public static async UniTask Move(CancellationToken cancellationToken, Cell.Cell cell, Direction direction, float speed)
+        public static async UniTask Move(CancellationToken cancellationToken, Cell cell, Direction direction,
+            float speed)
         {
             switch (direction)
             {
@@ -19,23 +22,22 @@ namespace LogicSpace.Movement
             }
         }
 
-        private static async UniTask Move(CancellationToken cancellationToken, Cell.Cell cell, Vector2Int direction, float speed)
+        private static async UniTask Move(CancellationToken cancellationToken, Cell cell, Vector2Int direction,
+            float speed)
         {
             var cellPosition = cell.Field.GridPosition;
-            if (!cell.Field.Grid.Fields.TryGetValue(cellPosition + direction, out var targetField))
-            {
+            if (!cell.Field.Map.Fields.TryGetValue(cellPosition + direction, out var targetField))
                 throw new ArgumentOutOfRangeException($"field {cellPosition + direction} does not exist");
-            }
             var targetPosition = targetField.WorldPosition;
             await MovementUtils.MoveTowards(cancellationToken, cell.gameObject, targetPosition, speed);
             cell.ChangeField(targetField);
         }
 
-        public static bool CanMove(Cell.Cell cell, Direction direction)
+        public static bool CanMove(Cell cell, Direction direction)
         {
             var cellPosition = cell.Field.GridPosition;
             var directionVector = direction.ToVector2Int();
-            return cell.Field.Grid.Fields.ContainsKey(cellPosition + directionVector);
+            return cell.Field.Map.Fields.ContainsKey(cellPosition + directionVector);
         }
 
         public static bool CanMove(Map map, Vector2Int fromPosition, Direction direction)

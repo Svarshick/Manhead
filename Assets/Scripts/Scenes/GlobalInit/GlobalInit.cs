@@ -13,7 +13,7 @@ namespace Scenes.GlobalInit
         
         public void Start()
         {
-            _sceneLoader.LoadSceneAsyncUniTask(SceneNames.MainMenu);
+            //_sceneLoader.LoadSceneAsyncUniTask(SceneNames.MainMenu);
         }
     }
 }

@@ -6,7 +6,8 @@ namespace LogicSpace.Movement
 {
     public static class MovementUtils
     {
-        public static async UniTask MoveTowards(CancellationToken cancellationToken, GameObject obj, Vector3 target, float speed)
+        public static async UniTask MoveTowards(CancellationToken cancellationToken, GameObject obj, Vector3 target,
+            float speed)
         {
             while (true)
             {

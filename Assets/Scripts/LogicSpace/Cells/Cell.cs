@@ -1,17 +1,21 @@
-using DefaultNamespace;
+using System;
+using System.Collections.Generic;
+using LogicSpace.Fields;
 using UnityEngine;
+using Math = DefaultNamespace.Math;
 
-namespace LogicSpace.Cell
+namespace LogicSpace.Cells
 {
     public class Cell : MonoBehaviour
     {
-        public Field Field { get; private set; }
         [field: SerializeField] public CellSide LeftSide { get; private set; }
         [field: SerializeField] public CellSide RightSide { get; private set; }
         [field: SerializeField] public CellSide FrontSide { get; private set; }
         [field: SerializeField] public CellSide BackSide { get; private set; }
 
         private Direction _lookDirection = Direction.Up;
+        public Field Field { get; private set; }
+
         public Direction LookDirection
         {
             get => _lookDirection;
@@ -27,11 +31,25 @@ namespace LogicSpace.Cell
                 }
             }
         }
+        
+        public Dictionary<Type, CellComponent> Components { get; private set; }
 
+        void Awake()
+        {
+            Components = new (gameObject.GetComponentCount());
+            foreach (var component in GetComponents<CellComponent>())
+            {
+                var componentType = component.GetType();
+                if (Components.ContainsKey(componentType))
+                    Debug.LogAssertion($"{this} contains more than one component of type {componentType}");
+                Components[component.GetType()] = component;
+            }
+        }
+        
         public void ChangeField(Field field)
         {
             Field?.Cells.Remove(this);
-            Field = field ?? throw new System.ArgumentNullException(nameof(field));
+            Field = field ?? throw new ArgumentNullException(nameof(field));
             field.Cells.Add(this);
         }
 
@@ -60,5 +78,14 @@ namespace LogicSpace.Cell
         }
     }
 
-    public interface ICellComponent {}
+    [RequireComponent(typeof(Cell))]
+    public class CellComponent : MonoBehaviour
+    {
+        public Cell Cell { get; private set; }
+
+        void Awake()
+        {
+            Cell = GetComponent<Cell>();
+        }
+    }
 }

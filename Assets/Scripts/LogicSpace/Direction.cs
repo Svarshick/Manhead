@@ -1,4 +1,3 @@
-using System.IO;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -12,7 +11,7 @@ namespace LogicSpace
         Right,
         Ambiguous
     }
-    
+
     public static class DirectionExtension
     {
         public static Vector2Int ToVector2Int(this Direction direction)
@@ -38,7 +37,7 @@ namespace LogicSpace
                 _ => Vector2.zero
             };
         }
-        
+
         public static Direction ToDirection(this Vector2 vector)
         {
             if (vector.y == 0)
@@ -48,6 +47,7 @@ namespace LogicSpace
                 if (vector.x < 0)
                     return Direction.Left;
             }
+
             if (vector.x == 0)
             {
                 if (vector.y > 0)
@@ -55,9 +55,10 @@ namespace LogicSpace
                 if (vector.y < 0)
                     return Direction.Down;
             }
+
             return Direction.Ambiguous;
         }
-        
+
         public static Direction ToDirection(this Vector2Int vector)
         {
             if (vector.y == 0)
@@ -67,6 +68,7 @@ namespace LogicSpace
                 if (vector.x < 0)
                     return Direction.Left;
             }
+
             if (vector.x == 0)
             {
                 if (vector.y > 0)
@@ -74,9 +76,10 @@ namespace LogicSpace
                 if (vector.y < 0)
                     return Direction.Down;
             }
+
             return Direction.Ambiguous;
         }
-        
+
         public static char ToArrow(this Direction direction)
         {
             return direction switch
@@ -101,12 +104,12 @@ namespace LogicSpace
             };
         }
     }
-    
+
     public static class DirectionUtils
     {
         public static Direction GetRandom()
         {
-            int index = Random.Range(0, 3);
+            var index = Random.Range(0, 3);
             return (Direction)index;
         }
     }

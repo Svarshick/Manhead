@@ -4,6 +4,5 @@ namespace LogicSpace
 {
     public class Player : MonoBehaviour
     {
-        
     }
 }

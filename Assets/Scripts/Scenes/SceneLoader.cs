@@ -38,10 +38,7 @@ namespace Scenes
                 await SceneManager.LoadSceneAsync(sceneName, LoadSceneMode.Additive);
             }
         }
-        
-        public void UnloadScene(string sceneName)
-        {
-            SceneManager.UnloadScene(sceneName);   
-        }
+
+        public void UnloadScene(string sceneName) => SceneManager.UnloadSceneAsync(sceneName);
     }
 }

@@ -2,13 +2,15 @@ using PlayerSpace.UI;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace LogicSpace
+namespace LogicSpace.Fields
 {
-    public class MapDebugView : View 
+    public class MapDebugView : View
     {
         private FieldDebugInfoView _fieldDebugInfoView;
-        
-        public MapDebugView(VisualElement root) : base(root) { }
+
+        public MapDebugView(VisualElement root) : base(root)
+        {
+        }
 
         protected override void SetVisualElements()
         {
@@ -33,15 +35,21 @@ namespace LogicSpace
             _fieldDebugInfoView.Show();
         }
 
-        public void HideFieldDebug() => _fieldDebugInfoView.Hide();
+        public void HideFieldDebug()
+        {
+            _fieldDebugInfoView.Hide();
+        }
 
-        public void SetInfo(string info) => _fieldDebugInfoView.SetInfo(info);
+        public void SetInfo(string info)
+        {
+            _fieldDebugInfoView.SetInfo(info);
+        }
     }
-    
+
     public class FieldDebugInfoView : View
     {
         private Label _label;
-        
+
         public FieldDebugInfoView(VisualElement root, bool hideOnAwake = true) : base(root, hideOnAwake)
         {
         }
@@ -56,6 +64,9 @@ namespace LogicSpace
             _label.text = "None";
         }
 
-        public void SetInfo(string info) => _label.text = info;
+        public void SetInfo(string info)
+        {
+            _label.text = info;
+        }
     }
 }

@@ -1,26 +1,21 @@
+using LogicSpace.Fields;
 using UnityEngine;
 
 namespace LogicSpace.Movement
 {
-    public class AllTheWayMovement : IMovementType
+    public class AllTheWayMovement : MovementController
     {
-        private readonly Map _map;
-        private Vector2Int _currentPosition;
-        private Direction _direction;
-
-        public AllTheWayMovement(Map map, Vector2Int position, Direction direction)
+        public AllTheWayMovement(Map map, Vector2Int startPosition, Direction lookDirection): base (map, startPosition, lookDirection) { }
+        
+        public override Step GetNextStep()
         {
-            _map = map;
-            _currentPosition = position;
-            _direction = direction;
-        }
-
-        public Direction? GetNextStep()
-        {
-            if (!MovementSystem.CanMove(_map, _currentPosition, _direction))
-                return null;
-            _currentPosition += _direction.ToVector2Int();
-            return _direction;
+            if (!MovementSystem.CanMove(map, CurrentPosition, LookDirection))
+                return new Step
+                {
+                    lookDirection = LookDirection, stepDirection = Direction.Ambiguous
+                }; //TODO rename Direction.Ambiguous?
+            CurrentPosition += LookDirection.ToVector2Int();
+            return new Step { lookDirection = LookDirection, stepDirection = LookDirection };
         }
     }
 }

@@ -1,36 +1,26 @@
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UIElements;
 using VContainer;
 
-namespace LogicSpace
+namespace LogicSpace.Fields
 {
     public class MapDebugger : MonoBehaviour
     {
-        private Map _map;
-        private MapDebugView _mapDebugView;
-        
         private LineRenderer _borderLineRenderer;
-        private LineRenderer _fieldLineRenderer;
 
         private InputAction _clickAction;
-        
-        private Field _currentField;
 
-        [Inject]
-        public void Inject(Map map, MapDebugView mapDebugView)
-        {
-            _map = map;
-            _mapDebugView = mapDebugView;
-            _mapDebugView.Initialize();
-        }
-        
-        void Awake()
+        private Field _currentField;
+        private LineRenderer _fieldLineRenderer;
+        private Map _map;
+        private MapDebugView _mapDebugView;
+
+        private void Awake()
         {
             InitBorderLineRenderer();
             InitFieldLineRenderer();
             _clickAction = InputSystem.actions["Click"];
-            
+
 
             void InitBorderLineRenderer()
             {
@@ -43,8 +33,9 @@ namespace LogicSpace
                 _borderLineRenderer.endWidth = .05f;
                 _borderLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
                 _borderLineRenderer.startColor = Color.black;
-                _borderLineRenderer.endColor = Color.black;    
+                _borderLineRenderer.endColor = Color.black;
             }
+
             void InitFieldLineRenderer()
             {
                 var fieldRendererGO = new GameObject("Field Renderer");
@@ -57,15 +48,14 @@ namespace LogicSpace
                 _fieldLineRenderer.material = new Material(Shader.Find("Sprites/Default"));
                 _fieldLineRenderer.startColor = Color.red;
                 _fieldLineRenderer.endColor = Color.red;
-
             }
         }
 
-        void Update()
+        private void Update()
         {
             if (_map == null || _mapDebugView == null)
                 return;
-            
+
             if (_clickAction.triggered)
             {
                 DrawBorder();
@@ -74,7 +64,7 @@ namespace LogicSpace
                 var clickWorldPosition = Camera.main.ScreenToWorldPoint(pointerPosition);
                 var fieldGridPosition = _map.Tilemap.WorldToCell(clickWorldPosition);
                 var fieldWorldPosition = _map.Tilemap.CellToWorld(fieldGridPosition);
-                if (_map.Fields.TryGetValue((Vector2Int) fieldGridPosition, out _currentField))
+                if (_map.Fields.TryGetValue((Vector2Int)fieldGridPosition, out _currentField))
                 {
                     _fieldLineRenderer.enabled = true;
                     ShowFieldDebug(fieldWorldPosition);
@@ -90,14 +80,23 @@ namespace LogicSpace
 
             if (_currentField != null)
             {
-                string info = $"Field position: {_currentField.GridPosition.ToString()}\n\n";
+                var info = $"Field position: {_currentField.GridPosition.ToString()}\n\n";
                 foreach (var cell in _currentField.Cells)
                 {
-                    string cellInfo = $"Cell: {cell.gameObject}\n";
+                    var cellInfo = $"Cell: {cell.gameObject}\n";
                     info += cellInfo + '\n';
                 }
+
                 _mapDebugView.SetInfo(info);
             }
+        }
+
+        [Inject]
+        public void Inject(Map map, MapDebugView mapDebugView)
+        {
+            _map = map;
+            _mapDebugView = mapDebugView;
+            _mapDebugView.Initialize();
         }
 
         private void DrawBorder()
@@ -106,8 +105,8 @@ namespace LogicSpace
             var bounds = _map.Tilemap.cellBounds;
 
             // Calculate world positions for the four corners
-            Vector3[] corners = new Vector3[5];
-    
+            var corners = new Vector3[5];
+
             // Bottom-left
             corners[0] = _map.Tilemap.CellToWorld(new Vector3Int(bounds.xMin - padding, bounds.yMin - padding, 0));
             // Bottom-right
@@ -121,10 +120,7 @@ namespace LogicSpace
 
             // Adjust for cell center (if your tiles are centered)
             var cellCenterOffset = _map.Tilemap.cellSize * 0.5f;
-            for (int i = 0; i < corners.Length; i++)
-            {
-                corners[i] += cellCenterOffset;
-            }
+            for (var i = 0; i < corners.Length; i++) corners[i] += cellCenterOffset;
 
             // Set positions in LineRenderer
             _borderLineRenderer.positionCount = corners.Length;
@@ -133,21 +129,21 @@ namespace LogicSpace
 
         private void DrawField(Vector3 fieldWorldPosition)
         {
-            var cellCenter =  fieldWorldPosition + _map.Tilemap.cellSize * 0.5f;
-    
+            var cellCenter = fieldWorldPosition + _map.Tilemap.cellSize * 0.5f;
+
             // Calculate the four corners of the cell
             var halfSize = _map.Tilemap.cellSize * 0.5f;
-    
-            Vector3[] corners = new Vector3[5];
+
+            var corners = new Vector3[5];
             corners[0] = cellCenter + new Vector3(-halfSize.x, -halfSize.y, 0); // Bottom-left
-            corners[1] = cellCenter + new Vector3(halfSize.x, -halfSize.y, 0);  // Bottom-right
-            corners[2] = cellCenter + new Vector3(halfSize.x, halfSize.y, 0);   // Top-right
-            corners[3] = cellCenter + new Vector3(-halfSize.x, halfSize.y, 0);  // Top-left
+            corners[1] = cellCenter + new Vector3(halfSize.x, -halfSize.y, 0); // Bottom-right
+            corners[2] = cellCenter + new Vector3(halfSize.x, halfSize.y, 0); // Top-right
+            corners[3] = cellCenter + new Vector3(-halfSize.x, halfSize.y, 0); // Top-left
             corners[4] = corners[0]; // Close the loop
 
             _fieldLineRenderer.positionCount = corners.Length;
             _fieldLineRenderer.SetPositions(corners);
-            _fieldLineRenderer.gameObject.SetActive(true); 
+            _fieldLineRenderer.gameObject.SetActive(true);
         }
 
         private void ShowFieldDebug(Vector3 fieldWorldPosition)
