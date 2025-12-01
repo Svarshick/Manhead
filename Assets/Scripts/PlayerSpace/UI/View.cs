@@ -4,7 +4,7 @@ using VContainer.Unity;
 
 namespace PlayerSpace.UI
 {
-    public abstract class View : IStartable, IDisposable
+    public abstract class View : IInitializable, IDisposable
     {
         public VisualElement Root { get; }
         public bool IsVisible => Root.style.display == DisplayStyle.Flex;
@@ -15,7 +15,7 @@ namespace PlayerSpace.UI
             if (hideOnAwake) Hide();
         }
 
-        public void Start()
+        public void Initialize()
         {
             SetVisualElements();
             BindViewData();

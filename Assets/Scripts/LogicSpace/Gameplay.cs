@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using Cysharp.Threading.Tasks;
+using LogicSpace.Cell;
 using LogicSpace.Movement;
 using LogicSpace.Predictor;
 using UnityEngine;
@@ -20,63 +22,32 @@ namespace LogicSpace
         }
 
         private State _state;
-        private FieldsGrid _fieldsGrid;
-        private List<Cell.Cell> _cells;
+        private Map _map;
+        private List<Cell.Cell> _movingCells;
         private InputAction _moveAction;
         private Predictor.Predictor _predictor = new();
         
-        public Gameplay(Tilemap tilemap)
+        public Gameplay(Map map)
         {
             _state = State.WaitingDecision;
             
-            _fieldsGrid = CreateFieldsGrid(tilemap);
-            _cells = ExtractCells(_fieldsGrid);
+            _map = map;
+            _movingCells = ExtractMovingCells(_map);
             
             _moveAction = InputSystem.actions["Move"];
             _moveAction.performed += ctx => StartTurn(ctx).Forget();
         }
         
         public void Start() {}
-
-        private FieldsGrid CreateFieldsGrid(Tilemap tilemap)
-        {
-            tilemap.CompressBounds();
-            int padding = 3;
-            int xMin = tilemap.cellBounds.xMin - padding;
-            int yMin = tilemap.cellBounds.yMin - padding;
-            int xMax = tilemap.cellBounds.xMax + padding;
-            int yMax = tilemap.cellBounds.yMax + padding;
-            int width = xMax - xMin + 1;
-            int height = yMax - yMin + 1;
-            Dictionary<Vector2Int, Field> fields = new(width * height);
-            var fieldsGrid = new FieldsGrid(tilemap, fields);
-            for (int x = xMin; x <= xMax; ++x)
-            {
-                for (int y = yMin; y <= yMax; ++y)
-                {
-                    var position = new Vector2Int(x, y);
-                    fieldsGrid.Fields[position] = new Field(fieldsGrid, position);
-                }
-            }
-
-            foreach (var cell in tilemap.GetComponentsInChildren<Cell.Cell>())
-            {
-                var cellPosition = (Vector2Int) fieldsGrid.Tilemap.WorldToCell(cell.transform.position);
-                fieldsGrid.Fields[cellPosition].Cells.Add(cell);
-                cell.ChangeField(fieldsGrid.Fields[cellPosition]);
-            }
-            
-            return fieldsGrid;
-        }
         
-        private List<Cell.Cell> ExtractCells(FieldsGrid fieldsGrid)
+        private static List<Cell.Cell> ExtractMovingCells(Map map)
         {
-            var cells = new List<Cell.Cell>(fieldsGrid.Width * fieldsGrid.Height);
-            foreach (var (_, field) in fieldsGrid.Fields)
+            var cells = new List<Cell.Cell>(map.Width * map.Height);
+            foreach (var (_, field) in map.Fields)
             {
                 cells.AddRange(field.Cells);
             }
-            return cells;
+            return cells.FindAll(cell => cell.GetComponent<Moving>() is not null);
         }
 
         private async UniTask StartTurn(InputAction.CallbackContext context)
@@ -88,25 +59,23 @@ namespace LogicSpace
                 return;
             
             _state = State.ProcessingTurn;
-            foreach (var cell in _cells)
+            foreach (var cell in _movingCells)
             {
-                IMovementType movement;
-                if (cell.GetComponent<Player>())
-                {
-                    movement = new AllTheWayMovement(cell.Field.Grid, cell.Field.GridPosition, playerDirection);
-                }
+                Direction direction;
+                if (cell.GetComponent<Player>() != null)
+                    direction = playerDirection;
                 else
-                {
-                    var direction = DirectionUtils.GetRandom();
-                    movement = new AllTheWayMovement(cell.Field.Grid, cell.Field.GridPosition, direction);
-                }
-
+                    direction = DirectionUtils.GetRandom();
+                
+                var movingComponent = cell.GetComponent<Moving>();
+                var movement = MovementTypeFabric.Create(movingComponent.MovementType, cell.Field.Grid, cell.Field.GridPosition, direction);
                 while (true)
                 {
                     var step = movement.GetNextStep();
                     if (step == null)
                         break;
                     var future = _predictor.Predict(cell, (Direction)step);
+                    Debug.Log($"{cell.gameObject.name}: {future}");
                     await DoFuture(future);
                 }
                 await UniTask.Delay(1000);
@@ -123,7 +92,11 @@ namespace LogicSpace
             foreach (var moveRequest in future.OfType<MoveRequest>())
             {
                 var targetCell = moveRequest.target;
-                await MovementSystem.Move(targetCell.GetCancellationTokenOnDestroy(), targetCell, moveRequest.direction);
+                var direction = moveRequest.direction;
+                //TODO could fail, temp dirt hack
+                var movingComponent = targetCell.GetComponent<Moving>();
+                targetCell.LookDirection = direction;
+                await MovementSystem.Move(targetCell.GetCancellationTokenOnDestroy(), targetCell, direction, movingComponent.Speed);
             }
         }
         

@@ -1,0 +1,4 @@
+<ui:UXML xmlns:ui="UnityEngine.UIElements" xmlns:uie="UnityEditor.UIElements" editor-extension-mode="False">
+    <Style src="project://database/Assets/UI/debug-info.uss?fileID=7433441132597879392&amp;guid=b700704ec9a4e469ab8d1a97e42ae9fe&amp;type=3#debug-info" />
+    <ui:Label text="label" name="label" style="background-color: rgb(243, 192, 152);" />
+</ui:UXML>

@@ -10,7 +10,23 @@ namespace LogicSpace.Cell
         [field: SerializeField] public CellSide RightSide { get; private set; }
         [field: SerializeField] public CellSide FrontSide { get; private set; }
         [field: SerializeField] public CellSide BackSide { get; private set; }
-        public Direction LookDirection { get; set; }
+
+        private Direction _lookDirection = Direction.Up;
+        public Direction LookDirection
+        {
+            get => _lookDirection;
+            set
+            {
+                _lookDirection = value;
+                switch (_lookDirection)
+                {
+                    case Direction.Left: transform.localRotation = Quaternion.Euler(0, 0, 90); break;
+                    case Direction.Right: transform.localRotation = Quaternion.Euler(0, 0, 270); break;
+                    case Direction.Up: transform.localRotation = Quaternion.Euler(0, 0, 0); break;
+                    case Direction.Down: transform.localRotation = Quaternion.Euler(0, 0, 180); break;
+                }
+            }
+        }
 
         public void ChangeField(Field field)
         {
@@ -43,4 +59,6 @@ namespace LogicSpace.Cell
             return GetSide(sideDirection);
         }
     }
+
+    public interface ICellComponent {}
 }

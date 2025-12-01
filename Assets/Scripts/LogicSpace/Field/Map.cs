@@ -4,14 +4,14 @@ using UnityEngine.Tilemaps;
 
 namespace LogicSpace
 {
-    public class FieldsGrid
+    public class Map
     {
         public Tilemap Tilemap { get; private set; }
         public int Width => Tilemap.cellBounds.xMax - Tilemap.cellBounds.xMin + 1;
         public int Height => Tilemap.cellBounds.yMax - Tilemap.cellBounds.yMin + 1;
-        public Dictionary<Vector2Int, Field> Fields { get; private set; } = new();
+        public Dictionary<Vector2Int, Field> Fields { get; private set; }
         
-        public FieldsGrid(Tilemap tilemap, Dictionary<Vector2Int, Field> fields)
+        public Map(Tilemap tilemap, Dictionary<Vector2Int, Field> fields)
         {
             Tilemap = tilemap;
             Fields = fields;

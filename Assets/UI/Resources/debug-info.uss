@@ -1,0 +1,4 @@
+:root {
+    position: absolute;
+    background-color: rgb(93, 99, 80);
+}
