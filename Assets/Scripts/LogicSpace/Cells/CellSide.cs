@@ -4,30 +4,39 @@ using UnityEngine;
 
 namespace LogicSpace.Cells
 {
-    public class CellSide : MonoBehaviour
+    public sealed class CellSide : MonoBehaviour
     {
         public Cell Cell { get; set; }
-        public Dictionary<Type, CellSideComponent> Components { get; private set; }
-
-        void Awake()
+        public Direction Side { get; set; }
+        public Dictionary<Type, CellSideComponent> Components { get; set; }
+        public new T GetComponent<T>() where T : CellSideComponent
         {
-            Components = new (gameObject.GetComponentCount());
-            foreach (var component in GetComponents<CellSideComponent>())
-            {
-                var componentType = component.GetType();
-                if (Components.ContainsKey(componentType))
-                    Debug.LogAssertion($"{this} contains more than one component of type {componentType}");
-                Components[component.GetType()] = component;
-            }
+            if (Components.TryGetValue(typeof(T), out var component))
+                return (T) component;
+            return null;
         }
+
+        //TODO dirty hack
+        void Awake() => gameObject.SetActive(Cell != null);
+
+        public Direction GetLookDirection() => GetLookVector().ToDirection();
+        public Vector2Int GetLookVector()
+        {
+            var cellLookVector = Cell.LookDirection.ToVector2Int();
+            var x = cellLookVector.x;
+            var y = cellLookVector.y;
+            var transformMatrix = (y, -x, x, y);
+            return MyMath.Multiply(Side.ToVector2Int(), transformMatrix);
+        }
+
     }
 
     [RequireComponent(typeof(CellSide))]
     public class CellSideComponent : MonoBehaviour
     {
-        public CellSide CellSide { get; private set; }
+        public CellSide CellSide { get; set; }
 
-        void Awake()
+        protected void Awake()
         {
             CellSide = GetComponent<CellSide>();
         }

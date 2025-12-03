@@ -99,31 +99,17 @@ namespace LogicSpace.Fields
             _mapDebugView.Initialize();
         }
 
+        //TODO PIECE OF SHIgTT
         private void DrawBorder()
         {
-            var padding = 5;
-            var bounds = _map.Tilemap.cellBounds;
-
-            // Calculate world positions for the four corners
+            var min = _map.WorldMin;
+            var max = _map.WorldMax;
             var corners = new Vector3[5];
-
-            // Bottom-left
-            corners[0] = _map.Tilemap.CellToWorld(new Vector3Int(bounds.xMin - padding, bounds.yMin - padding, 0));
-            // Bottom-right
-            corners[1] = _map.Tilemap.CellToWorld(new Vector3Int(bounds.xMax + padding, bounds.yMin - padding, 0));
-            // Top-right
-            corners[2] = _map.Tilemap.CellToWorld(new Vector3Int(bounds.xMax + padding, bounds.yMax + padding, 0));
-            // Top-left
-            corners[3] = _map.Tilemap.CellToWorld(new Vector3Int(bounds.xMin - padding, bounds.yMax + padding, 0));
-            // Back to start to close the loop
+            corners[0] = min;
+            corners[1] = new(min.x, max.y);
+            corners[2] = max;
+            corners[3] = new (max.x, min.y);
             corners[4] = corners[0];
-
-            // Adjust for cell center (if your tiles are centered)
-            var cellCenterOffset = _map.Tilemap.cellSize * 0.5f;
-            for (var i = 0; i < corners.Length; i++) corners[i] += cellCenterOffset;
-
-            // Set positions in LineRenderer
-            _borderLineRenderer.positionCount = corners.Length;
             _borderLineRenderer.SetPositions(corners);
         }
 

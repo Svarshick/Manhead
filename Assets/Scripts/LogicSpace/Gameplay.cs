@@ -21,15 +21,19 @@ namespace LogicSpace
 
         private readonly Map _map;
         private readonly InputAction _moveAction;
+        private readonly int _delayTime;
 
         private List<Cell> _movingCells;
-        private Predictor _predictor; 
+        private Predictor _predictor;
         private State _state;
+        private MovementController _movementController;
+        private Camera _camera;
 
-        public Gameplay(Map map)
+        public Gameplay(Map map, int delayTime)
         {
             _map = map;
             _moveAction = InputSystem.actions["Move"];
+            _delayTime = delayTime;
         }
 
         public void Start()
@@ -38,13 +42,16 @@ namespace LogicSpace
             _movingCells = ExtractMovingCells(_map);
             _predictor = new();
             _moveAction.performed += ctx => StartTurn(ctx).Forget();
+            _camera = Camera.main;
+            FitCameraToBounds(_map.WorldMin, _map.WorldMax);
         }
 
         private static List<Cell> ExtractMovingCells(Map map)
         {
             var cells = new List<Cell>(map.Width * map.Height);
             foreach (var (_, field) in map.Fields) cells.AddRange(field.Cells);
-            return cells.FindAll(cell => cell.Components.ContainsKey(typeof(Moving)));
+            return cells.FindAll(cell => cell.GetComponent<Moving>() != null)
+                .OrderBy(cell => cell.GetComponent<Moving>().Priority).ToList();
         }
 
         private async UniTask StartTurn(InputAction.CallbackContext context)
@@ -59,14 +66,14 @@ namespace LogicSpace
             foreach (var cell in _movingCells)
             {
                 Direction direction;
-                direction = cell.Components.ContainsKey(typeof(Player)) ? playerDirection : DirectionUtils.GetRandom();
+                direction = cell.GetComponent<Player>() != null ? playerDirection : DirectionUtils.GetRandom();
                 cell.LookDirection = direction;
 
-                var movingComponent = (Moving)cell.Components[typeof(Moving)];
-                var movementController = movingComponent.MovementController;
+                var movingComponent = cell.GetComponent<Moving>();
+                _movementController = movingComponent.MovementController;
                 while (true)
                 {
-                    var step = movementController.GetNextStep();
+                    var step = _movementController.GetNextStep();
                     if (step.stepDirection == Direction.Ambiguous)
                         break;
                     var future = _predictor.Predict(cell, step);
@@ -74,7 +81,7 @@ namespace LogicSpace
                     await DoFuture(future);
                 }
 
-                await UniTask.Delay(1000);
+                await UniTask.Delay(_delayTime);
             }
 
             EndTurn();
@@ -82,25 +89,57 @@ namespace LogicSpace
 
         private async UniTask DoFuture(IEnumerable<IRequest> future)
         {
-            if (future.Any(request => request is StopRequest)) return;
+            Debug.Log("Doing future");
             foreach (var request in future)
             {
-                 switch (request)
-                 {
-                     case RotateRequest rotateRequest:
-                         rotateRequest.target.LookDirection = rotateRequest.lookDirection;
-                         break;
-                     case MoveRequest moveRequest:
-                         var cell = moveRequest.target;
-                         var direction = moveRequest.direction;
-                         //TODO could fail, temp dirt hack
-                         var movingComponent = (Moving)cell.Components[typeof(Moving)];
-                         await MovementSystem.Move(cell.GetCancellationTokenOnDestroy(), cell, direction, movingComponent.Speed);
-                         break;
-                 }
+                switch (request)
+                {
+                    case StopRequest stopRequest:
+                        return;
+                    case RotateRequest rotateRequest:
+                        rotateRequest.target.LookDirection = rotateRequest.lookDirection;
+                        _movementController.LookDirection = rotateRequest.lookDirection;
+                        break;
+                    case MoveRequest moveRequest:
+                        var cell = moveRequest.target;
+                        var direction = moveRequest.direction;
+                        //TODO could fail, temp dirt hack
+                        var movingComponent = cell.GetComponent<Moving>();
+                        await MovementSystem.Move(cell.GetCancellationTokenOnDestroy(), cell, direction,
+                            movingComponent.Speed);
+                        break;
+                }
             }
         }
 
         private void EndTurn() => _state = State.WaitingDecision;
+
+        private void FitCameraToBounds(Vector2 bottomLeft, Vector2 topRight, float padding = 0f)
+        {
+            if (_camera == null) return;
+
+            // 1. Вычисляем центр прямоугольника
+            Vector2 center = (bottomLeft + topRight) * 0.5f;
+
+            // 2. Перемещаем камеру в центр
+            _camera.transform.position = new Vector3(center.x, center.y, _camera.transform.position.z);
+
+            // 3. Вычисляем ширину и высоту прямоугольника
+            float width = topRight.x - bottomLeft.x + padding * 2;
+            float height = topRight.y - bottomLeft.y + padding * 2;
+
+            // 4. Настраиваем ортографический размер
+            // Для ортографической камеры: видимая высота = 2 * orthographicSize
+            // Видимая ширина = 2 * orthographicSize * aspect
+
+            float aspect = _camera.aspect; // Соотношение сторон (ширина/высота)
+
+            // Нужно выбрать orthographicSize так, чтобы в поле зрения поместилось и по ширине, и по высоте
+            float sizeByHeight = height * 0.5f; // Половина высоты
+            float sizeByWidth = (width * 0.5f) / aspect; // С учетом соотношения сторон
+
+            // Выбираем большее значение, чтобы все поместилось
+            _camera.orthographicSize = Mathf.Max(sizeByHeight, sizeByWidth);
+        }
     }
 }

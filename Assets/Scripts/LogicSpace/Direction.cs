@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
@@ -22,7 +23,7 @@ namespace LogicSpace
                 Direction.Down => Vector2Int.down,
                 Direction.Left => Vector2Int.left,
                 Direction.Right => Vector2Int.right,
-                _ => Vector2Int.zero
+                _ => throw new NotImplementedException($"Can't convert {direction.ToString()} to Vector2Int")
             };
         }
 
@@ -34,7 +35,7 @@ namespace LogicSpace
                 Direction.Down => Vector2.down,
                 Direction.Left => Vector2.left,
                 Direction.Right => Vector2.right,
-                _ => Vector2.zero
+                _ => throw new NotImplementedException($"Can't convert {direction.ToString()} to Vector2")
             };
         }
 

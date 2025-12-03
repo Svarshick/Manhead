@@ -12,21 +12,34 @@ namespace LogicSpace
     {
         [SerializeField] private Tilemap tilemap;
         [SerializeField] private UIDocument uiDocument;
+        [SerializeField] public bool randomization;
+        [SerializeField] public int crossroadsAmount;
+        [SerializeField] public int stepDelayTime;
 
         protected override void Configure(IContainerBuilder builder)
         {
-            var safeUIDocument = new SafeUIDocument(uiDocument);
-            builder.RegisterInstance(safeUIDocument.Root);
-
-            var Map = MapFabric.CreateFromTilemap(tilemap);
-            builder.RegisterInstance(Map);
+            builder.Register<VisualElement>(
+                _ => new SafeUIDocument(uiDocument).Root,
+                Lifetime.Singleton);
+            builder.Register<Map>(_ =>
+                {
+                    if (randomization)
+                        return MapFactory.CreateFromTilemapWithCrossroadsGeneration(tilemap, crossroadsAmount);
+                    return MapFactory.CreateFromTilemap(tilemap);
+                }, 
+                Lifetime.Singleton);
+            builder.RegisterInstance(stepDelayTime);
             builder.RegisterEntryPoint<Gameplay>();
+            RegisterDebug(builder);
+        }
 
+        private void RegisterDebug(IContainerBuilder builder)
+        {
             builder.Register<MapDebugView>(Lifetime.Singleton);
 
             var debuggerGO = new GameObject("Debugger");
             var MapDebugger = debuggerGO.AddComponent<MapDebugger>();
-            builder.RegisterComponent(MapDebugger);
+            builder.RegisterComponent(MapDebugger); 
         }
     }
 }

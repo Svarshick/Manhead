@@ -2,20 +2,27 @@ using System;
 using System.Collections.Generic;
 using LogicSpace.Fields;
 using UnityEngine;
-using Math = DefaultNamespace.Math;
 
 namespace LogicSpace.Cells
 {
-    public class Cell : MonoBehaviour
+    public sealed class Cell : MonoBehaviour
     {
-        [field: SerializeField] public CellSide LeftSide { get; private set; }
-        [field: SerializeField] public CellSide RightSide { get; private set; }
-        [field: SerializeField] public CellSide FrontSide { get; private set; }
-        [field: SerializeField] public CellSide BackSide { get; private set; }
+        [field: SerializeField] public CellSide LeftSide { get; set; }
+        [field: SerializeField] public CellSide RightSide { get; set; }
+        [field: SerializeField] public CellSide FrontSide { get; set; }
+        [field: SerializeField] public CellSide BackSide { get; set; }
+        
+        public Field Field { get; set; }
+        public Dictionary<Type, CellComponent> Components { get; set; }
 
-        private Direction _lookDirection = Direction.Up;
-        public Field Field { get; private set; }
+        public new T GetComponent<T>() where T : CellComponent
+        {
+            if (Components.TryGetValue(typeof(T), out var component))
+                return (T) component;
+            return null;
+        }
 
+        private Direction _lookDirection = Direction.Up; 
         public Direction LookDirection
         {
             get => _lookDirection;
@@ -31,20 +38,9 @@ namespace LogicSpace.Cells
                 }
             }
         }
-        
-        public Dictionary<Type, CellComponent> Components { get; private set; }
 
-        void Awake()
-        {
-            Components = new (gameObject.GetComponentCount());
-            foreach (var component in GetComponents<CellComponent>())
-            {
-                var componentType = component.GetType();
-                if (Components.ContainsKey(componentType))
-                    Debug.LogAssertion($"{this} contains more than one component of type {componentType}");
-                Components[component.GetType()] = component;
-            }
-        }
+        //TODO dirty hack
+        void Awake() => gameObject.SetActive(Field != null);
         
         public void ChangeField(Field field)
         {
@@ -53,9 +49,8 @@ namespace LogicSpace.Cells
             field.Cells.Add(this);
         }
 
-        public CellSide GetSide(Direction direction)
-        {
-            return direction switch
+        public CellSide GetSide(Direction direction) => 
+            direction switch
             {
                 Direction.Left => LeftSide,
                 Direction.Right => RightSide,
@@ -63,18 +58,22 @@ namespace LogicSpace.Cells
                 Direction.Down => BackSide,
                 _ => null
             };
+
+        public CellSide GetSideRelative(Direction fromDirection)
+        {
+            var sideDirection = GetSideRelative(_lookDirection, fromDirection);
+            return GetSide(sideDirection);
         }
 
         //TODO should it be math or just switch?
         //too much type casting
-        public CellSide GetSideRelative(Direction fromDirection)
+        public static Direction GetSideRelative(Direction lookDirection, Direction fromDirection)
         {
             var fromVector = fromDirection.ToVector2Int();
             var x = fromVector.x;
             var y = fromVector.y;
             var transformMatrix = (y, -x, -x, -y);
-            var sideDirection = Math.Multiply(LookDirection.ToVector2Int(), transformMatrix).ToDirection();
-            return GetSide(sideDirection);
+            return MyMath.Multiply(lookDirection.ToVector2Int(), transformMatrix).ToDirection();
         }
     }
 
@@ -83,7 +82,7 @@ namespace LogicSpace.Cells
     {
         public Cell Cell { get; private set; }
 
-        void Awake()
+        protected void Awake()
         {
             Cell = GetComponent<Cell>();
         }

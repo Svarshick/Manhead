@@ -19,6 +19,8 @@ namespace LogicSpace.Fields
         }
 
         public Vector3 WorldPosition => Map.GetCellCenterWorld((Vector3Int)GridPosition);
+        public float Width => Map.Width; 
+        public float Height => Map.Height;
 
         public Field? GetNeighbour(Direction direction)
         {

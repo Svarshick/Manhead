@@ -7,8 +7,8 @@ namespace LogicSpace.Movement
     public abstract class MovementController
     {
         protected readonly Map map;
-        public Vector2Int CurrentPosition { get; protected set; }
-        public Direction LookDirection { get; protected set; }
+        public Vector2Int CurrentPosition { get; set; }
+        public Direction LookDirection { get; set; }
 
         protected MovementController(Map map, Vector2Int currentPosition,  Direction lookDirection)
         {

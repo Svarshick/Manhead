@@ -1,58 +1,45 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using LogicSpace.Cells;
 using LogicSpace.Movement;
 
 namespace LogicSpace.Prediction
 {
-    public interface IRequest
-    {
-    }
-
-    public struct MoveRequest : IRequest
-    {
-        public Cell target;
-        public Direction direction;
-    }
-
-    public struct RotateRequest : IRequest
-    {
-        public Cell target;
-        public Direction lookDirection;
-    }
-
-    public struct StopRequest : IRequest
-    {
-        public Cell target;
-    }
-
     public class Predictor
     {
-        public IEnumerable<IRequest> Predict(Cell cell, Step step)
+        public List<IRequest> Predict(Cell cell, Step step)
         {
+            var future = new List<IRequest>();
             var toField = cell.Field.GetNeighbour(step.stepDirection);
             if (toField is null)
                 throw new ArgumentOutOfRangeException(
                     $"field {cell.Field.GridPosition + step.stepDirection.ToVector2Int()} does not exist");
+            var cellSideDirection = Cell.GetSideRelative(step.lookDirection, step.stepDirection.GetOpposite());
+            var cellSide = cell.GetSide(cellSideDirection);
 
-            if (toField.Cells.Count == 0)
+            foreach (var toCell in toField.Cells)
             {
-                yield return new RotateRequest {target = cell, lookDirection = step.lookDirection};
-                yield return new MoveRequest { target = cell, direction = step.stepDirection };
-                yield break;
+                var toCellSide = toCell.GetSideRelative(step.stepDirection);
+                if (toCellSide.GetComponent<Stop>() != null)
+                {
+                    future.Add(new StopRequest{ target = cell });
+                    return future;
+                }
             }
 
-            var facedCell = toField.Cells.First();
-            var stopComponent = facedCell.GetComponent<Stop>();
-            if (stopComponent is not null)
+            future.Add(new RotateRequest { target = cell, lookDirection = step.lookDirection });
+            future.Add(new MoveRequest { target = cell, direction = step.stepDirection });
+            foreach (var toCell in toField.Cells)
             {
-                yield return new StopRequest { target = cell };
-                yield break;
+                var toCellSide = toCell.GetSideRelative(step.stepDirection);
+                if (toCellSide.GetComponent<CrossRoad>() != null)
+                {
+                    var crossRoad = toCellSide.GetComponent<CrossRoad>();
+                    future.Add(new RotateRequest { target = cell, lookDirection = crossRoad.GlobalRotationDirection});
+                }
             }
 
-            yield return new RotateRequest {target = cell, lookDirection = step.lookDirection};
-            yield return new MoveRequest { target = cell, direction = step.stepDirection };
+            return future;
         }
     }
 }

@@ -1,8 +1,8 @@
-using UnityEngine;
+using LogicSpace.Cells;
 
 namespace LogicSpace
 {
-    public class Player : MonoBehaviour
+    public class Player : CellComponent
     {
     }
 }
