@@ -1,8 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
+using CustomMath;
 using Cysharp.Threading.Tasks;
-using LogicSpace.Cells;
-using LogicSpace.Fields;
+using LogicSpace.GameEntity;
+using LogicSpace.GameField;
 using LogicSpace.Movement;
 using LogicSpace.Prediction;
 using UnityEngine;
@@ -19,19 +20,20 @@ namespace LogicSpace
             ProcessingTurn
         }
 
-        private readonly Map _map;
-        private readonly InputAction _moveAction;
         private readonly int _delayTime;
 
-        private List<Cell> _movingCells;
+        private readonly Field _field;
+        private readonly InputAction _moveAction;
+        private Camera _camera;
+        private MovementController _movementController;
+
+        private List<Entity> _movingCells;
         private Predictor _predictor;
         private State _state;
-        private MovementController _movementController;
-        private Camera _camera;
 
-        public Gameplay(Map map, int delayTime)
+        public Gameplay(Field field, int delayTime)
         {
-            _map = map;
+            _field = field;
             _moveAction = InputSystem.actions["Move"];
             _delayTime = delayTime;
         }
@@ -39,17 +41,17 @@ namespace LogicSpace
         public void Start()
         {
             _state = State.WaitingDecision;
-            _movingCells = ExtractMovingCells(_map);
-            _predictor = new();
+            _movingCells = ExtractMovingCells(_field);
+            _predictor = new Predictor();
             _moveAction.performed += ctx => StartTurn(ctx).Forget();
             _camera = Camera.main;
-            FitCameraToBounds(_map.WorldMin, _map.WorldMax);
+            FitCameraToBounds(_field.WorldMin, _field.WorldMax);
         }
 
-        private static List<Cell> ExtractMovingCells(Map map)
+        private static List<Entity> ExtractMovingCells(Field field)
         {
-            var cells = new List<Cell>(map.Width * map.Height);
-            foreach (var (_, field) in map.Fields) cells.AddRange(field.Cells);
+            var cells = new List<Entity>(field.Width * field.Height);
+            foreach (var cell in field.Cells) cells.AddRange(cell.Entities);
             return cells.FindAll(cell => cell.GetComponent<Moving>() != null)
                 .OrderBy(cell => cell.GetComponent<Moving>().Priority).ToList();
         }
@@ -63,22 +65,21 @@ namespace LogicSpace
                 return;
 
             _state = State.ProcessingTurn;
-            foreach (var cell in _movingCells)
+            foreach (var entity in _movingCells)
             {
-                Direction direction;
-                direction = cell.GetComponent<Player>() != null ? playerDirection : DirectionUtils.GetRandom();
-                cell.LookDirection = direction;
+                Direction turnDirection;
+                turnDirection = entity.GetComponent<Player>() != null ? playerDirection : DirectionUtils.GetRandom();
+                var continueTurn = true;
 
-                var movingComponent = cell.GetComponent<Moving>();
-                _movementController = movingComponent.MovementController;
-                while (true)
+                var movingComponent = entity.GetComponent<Moving>();
+                _movementController = MovementTypeFabric.Create(movingComponent.MovementType,
+                    entity.Cell.GridPosition, turnDirection);
+                while (continueTurn)
                 {
                     var step = _movementController.GetNextStep();
-                    if (step.stepDirection == Direction.Ambiguous)
-                        break;
-                    var future = _predictor.Predict(cell, step);
-                    Debug.Log($"{cell.gameObject.name}: {future}");
-                    await DoFuture(future);
+                    var future = _predictor.Predict(entity, step);
+                    Debug.Log($"{nameof(entity)}: {future}");
+                    continueTurn = await DoFuture(future);
                 }
 
                 await UniTask.Delay(_delayTime);
@@ -87,56 +88,62 @@ namespace LogicSpace
             EndTurn();
         }
 
-        private async UniTask DoFuture(IEnumerable<IRequest> future)
+        private async UniTask<bool> DoFuture(IEnumerable<IRequest> future)
         {
-            Debug.Log("Doing future");
+            Debug.Log($"Doing future:\n{future.ToLogString()}");
             foreach (var request in future)
-            {
                 switch (request)
                 {
                     case StopRequest stopRequest:
-                        return;
+                        return false;
                     case RotateRequest rotateRequest:
                         rotateRequest.target.LookDirection = rotateRequest.lookDirection;
+                        //TODO target depends on rotateRequest, but _movementController not???
                         _movementController.LookDirection = rotateRequest.lookDirection;
                         break;
                     case MoveRequest moveRequest:
-                        var cell = moveRequest.target;
+                        var entity = moveRequest.target;
                         var direction = moveRequest.direction;
                         //TODO could fail, temp dirt hack
-                        var movingComponent = cell.GetComponent<Moving>();
-                        await MovementSystem.Move(cell.GetCancellationTokenOnDestroy(), cell, direction,
+                        var movingComponent = entity.GetComponent<Moving>();
+                        await MovementSystem.Move(entity.Appearance.GetCancellationTokenOnDestroy(), entity, direction,
                             movingComponent.Speed);
+                        //TODO target depends on rotateRequest, but _movementController not???
+                        _movementController.CurrentPosition = entity.Cell.GridPosition;
                         break;
                 }
-            }
+
+            return true;
         }
 
-        private void EndTurn() => _state = State.WaitingDecision;
+        private void EndTurn()
+        {
+            _state = State.WaitingDecision;
+        }
 
         private void FitCameraToBounds(Vector2 bottomLeft, Vector2 topRight, float padding = 0f)
         {
             if (_camera == null) return;
 
             // 1. Вычисляем центр прямоугольника
-            Vector2 center = (bottomLeft + topRight) * 0.5f;
+            var center = (bottomLeft + topRight) * 0.5f;
 
             // 2. Перемещаем камеру в центр
             _camera.transform.position = new Vector3(center.x, center.y, _camera.transform.position.z);
 
             // 3. Вычисляем ширину и высоту прямоугольника
-            float width = topRight.x - bottomLeft.x + padding * 2;
-            float height = topRight.y - bottomLeft.y + padding * 2;
+            var width = topRight.x - bottomLeft.x + padding * 2;
+            var height = topRight.y - bottomLeft.y + padding * 2;
 
             // 4. Настраиваем ортографический размер
             // Для ортографической камеры: видимая высота = 2 * orthographicSize
             // Видимая ширина = 2 * orthographicSize * aspect
 
-            float aspect = _camera.aspect; // Соотношение сторон (ширина/высота)
+            var aspect = _camera.aspect; // Соотношение сторон (ширина/высота)
 
             // Нужно выбрать orthographicSize так, чтобы в поле зрения поместилось и по ширине, и по высоте
-            float sizeByHeight = height * 0.5f; // Половина высоты
-            float sizeByWidth = (width * 0.5f) / aspect; // С учетом соотношения сторон
+            var sizeByHeight = height * 0.5f; // Половина высоты
+            var sizeByWidth = width * 0.5f / aspect; // С учетом соотношения сторон
 
             // Выбираем большее значение, чтобы все поместилось
             _camera.orthographicSize = Mathf.Max(sizeByHeight, sizeByWidth);

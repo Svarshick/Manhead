@@ -1,4 +1,5 @@
-using LogicSpace.Cells;
+using CustomMath;
+using LogicSpace.GameEntity;
 
 namespace LogicSpace.Prediction
 {
@@ -8,18 +9,18 @@ namespace LogicSpace.Prediction
 
     public struct MoveRequest : IRequest
     {
-        public Cell target;
+        public Entity target;
         public Direction direction;
     }
 
     public struct RotateRequest : IRequest
     {
-        public Cell target;
+        public Entity target;
         public Direction lookDirection;
     }
 
     public struct StopRequest : IRequest
     {
-        public Cell target;
+        public Entity target;
     }
 }

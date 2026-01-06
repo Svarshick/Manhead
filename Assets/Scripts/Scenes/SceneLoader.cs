@@ -12,7 +12,7 @@ namespace Scenes
         Internal,
         External
     }
-    
+
     public class SceneLoader
     {
         private readonly LifetimeScope _parent;
@@ -39,6 +39,9 @@ namespace Scenes
             }
         }
 
-        public void UnloadScene(string sceneName) => SceneManager.UnloadSceneAsync(sceneName);
+        public void UnloadScene(string sceneName)
+        {
+            SceneManager.UnloadSceneAsync(sceneName);
+        }
     }
 }

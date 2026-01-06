@@ -5,9 +5,6 @@ namespace PlayerSpace.UI
 {
     public sealed class SafeUIDocument
     {
-        public VisualElement Root => LazyRoot.Value;
-        public Lazy<VisualElement> LazyRoot { get; }
-
         public SafeUIDocument(UIDocument uiDocument)
         {
             LazyRoot = new Lazy<VisualElement>(() =>
@@ -22,8 +19,14 @@ namespace PlayerSpace.UI
                 return uiDocument.rootVisualElement;
             });
             return;
-            void ForceRecreationOfRoot() => uiDocument.visualTreeAsset = uiDocument.visualTreeAsset;
-        }
-    }
 
+            void ForceRecreationOfRoot()
+            {
+                uiDocument.visualTreeAsset = uiDocument.visualTreeAsset;
+            }
+        }
+
+        public VisualElement Root => LazyRoot.Value;
+        public Lazy<VisualElement> LazyRoot { get; }
+    }
 }

@@ -1,41 +1,43 @@
-using System;
 using System.Collections.Generic;
-using LogicSpace.Cells;
+using CustomMath;
+using LogicSpace.GameEntity;
 using LogicSpace.Movement;
 
 namespace LogicSpace.Prediction
 {
     public class Predictor
     {
-        public List<IRequest> Predict(Cell cell, Step step)
+        public List<IRequest> Predict(Entity entity, Step step)
         {
             var future = new List<IRequest>();
-            var toField = cell.Field.GetNeighbour(step.stepDirection);
-            if (toField is null)
-                throw new ArgumentOutOfRangeException(
-                    $"field {cell.Field.GridPosition + step.stepDirection.ToVector2Int()} does not exist");
-            var cellSideDirection = Cell.GetSideRelative(step.lookDirection, step.stepDirection.GetOpposite());
-            var cellSide = cell.GetSide(cellSideDirection);
-
-            foreach (var toCell in toField.Cells)
+            var toCell = entity.Cell.GetNeighbour(step.stepDirection);
+            if (toCell is null)
             {
-                var toCellSide = toCell.GetSideRelative(step.stepDirection);
-                if (toCellSide.GetComponent<Stop>() != null)
+                future.Add(new StopRequest { target = entity });
+                return future;
+            }
+
+            foreach (var toEntity in toCell.Entities)
+            {
+                var toEntitySide = toEntity.GetSideVisibleFrom(step.stepDirection);
+                if (toEntitySide.GetComponent<Stop>() != null)
                 {
-                    future.Add(new StopRequest{ target = cell });
+                    future.Add(new StopRequest { target = entity });
                     return future;
                 }
             }
 
-            future.Add(new RotateRequest { target = cell, lookDirection = step.lookDirection });
-            future.Add(new MoveRequest { target = cell, direction = step.stepDirection });
-            foreach (var toCell in toField.Cells)
+            future.Add(new RotateRequest { target = entity, lookDirection = step.lookDirection });
+            future.Add(new MoveRequest { target = entity, direction = step.stepDirection });
+            foreach (var toEntity in toCell.Entities)
             {
-                var toCellSide = toCell.GetSideRelative(step.stepDirection);
-                if (toCellSide.GetComponent<CrossRoad>() != null)
+                var toCellSide = toEntity.GetSideVisibleFrom(step.stepDirection);
+                var crossroadComponent = toCellSide.GetComponent<Crossroad>();
+                if (crossroadComponent != null)
                 {
-                    var crossRoad = toCellSide.GetComponent<CrossRoad>();
-                    future.Add(new RotateRequest { target = cell, lookDirection = crossRoad.GlobalRotationDirection});
+                    var globalRotationDirection = SpaceUtility.GetGlobalDirection(crossroadComponent.rotationDirection,
+                        toEntity.LookDirection);
+                    future.Add(new RotateRequest { target = entity, lookDirection = globalRotationDirection });
                 }
             }
 

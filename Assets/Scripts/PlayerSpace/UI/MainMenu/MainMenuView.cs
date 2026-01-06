@@ -4,23 +4,17 @@ using UnityEngine.UIElements;
 
 namespace PlayerSpace.UI.MainMenu
 {
-    public class MainMenuView : View
+    public class MainMenuView : View<MainMenuViewModel>
     {
-        private readonly MainMenuViewModel _viewModel;
-        
-        private Dictionary<Button, GameSave> _saveButtons = new();
-        
-        public MainMenuView(
-            MainMenuViewModel viewModel,
-            VisualElement root
-        ) : base(root)
+        private readonly Dictionary<Button, GameSave> _saveButtons = new();
+
+        public MainMenuView(MainMenuViewModel viewModel, VisualElement root) : base(viewModel, root)
         {
-            _viewModel = viewModel;
         }
 
         protected override void SetVisualElements()
         {
-            foreach (var save in _viewModel.Cells)
+            foreach (var save in ViewModel.Cells)
             {
                 var button = new Button();
                 _saveButtons[button] = save;
@@ -31,21 +25,17 @@ namespace PlayerSpace.UI.MainMenu
         protected override void BindViewData()
         {
             foreach (var (button, save) in _saveButtons)
-            {
                 if (save is null)
                     button.text = "Empty save";
                 else
                     button.text = save.Directory.Directory.Name;
-            }
         }
-        
+
         protected override void RegisterInputCallbacks()
         {
             foreach (var (button, save) in _saveButtons)
-            {
                 if (save is not null)
-                    button.RegisterCallback<ClickEvent>(e => _viewModel.LoadGame(save));
-            }
+                    button.RegisterCallback<ClickEvent>(e => ViewModel.LoadGame(save));
         }
     }
 }

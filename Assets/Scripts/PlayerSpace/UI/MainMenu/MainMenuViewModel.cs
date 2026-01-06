@@ -8,12 +8,10 @@ namespace PlayerSpace.UI.MainMenu
 {
     public class MainMenuViewModel : ViewModel
     {
-        private readonly SaveStorage _storage;
         private readonly SceneLoader _externalSceneLoader;
+        private readonly int _notDisposableCell = -1;
+        private readonly SaveStorage _storage;
 
-        public List<GameSave> Cells { get; private set; } = new();
-        private int _notDisposableCell = -1;
-        
         public MainMenuViewModel(
             SaveStorage storage,
             [Key(SceneLoaderType.External)] SceneLoader externalSceneLoader)
@@ -22,6 +20,8 @@ namespace PlayerSpace.UI.MainMenu
             _externalSceneLoader = externalSceneLoader;
             SavesInitialization();
         }
+
+        public List<GameSave> Cells { get; } = new();
 
         private void SavesInitialization()
         {
@@ -33,8 +33,8 @@ namespace PlayerSpace.UI.MainMenu
         public void LoadGame(GameSave save)
         {
             _externalSceneLoader.LoadSceneAsyncUniTask(
-                SceneNames.GameStarter, 
-                builder => builder.RegisterInstance(save))
+                    SceneNames.GameStarter,
+                    builder => builder.RegisterInstance(save))
                 .Forget();
             _externalSceneLoader.UnloadScene(SceneNames.MainMenu);
         }
@@ -42,7 +42,7 @@ namespace PlayerSpace.UI.MainMenu
         public override void Dispose()
         {
             base.Dispose();
-            for (int i = 0; i < Cells.Count; ++i)
+            for (var i = 0; i < Cells.Count; ++i)
                 if (i != _notDisposableCell)
                     Cells[i]?.Dispose();
         }

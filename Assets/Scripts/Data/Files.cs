@@ -10,6 +10,5 @@ namespace Data
 
     public static class ConfigFiles
     {
-
     }
 }

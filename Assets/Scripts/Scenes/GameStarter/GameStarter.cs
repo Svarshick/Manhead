@@ -7,6 +7,7 @@ namespace Scenes.GameStarter
     public class GameStarter : IStartable
     {
         private readonly GameSave _save;
+
         public GameStarter(GameSave save)
         {
             _save = save;
