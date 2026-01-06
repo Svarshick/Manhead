@@ -104,7 +104,7 @@ namespace LogicSpace.GameField
         {
             var entity = new Entity();
             var sidesMask = Random.Range(1, 16);
-            for (var sideDirection = 0; sideDirection < 3; sideDirection++)
+            for (var sideDirection = 0; sideDirection < 4; sideDirection++)
                 if ((sidesMask & (int)Mathf.Pow(2, sideDirection)) != 0)
                 {
                     var side = entity.GetSide((Direction)sideDirection);
@@ -112,7 +112,7 @@ namespace LogicSpace.GameField
                     crossroad.rotationDirection = DirectionUtils.GetRandom();
                     side.AddComponent(crossroad);
                 }
-
+            entity.Color = Color.white;
             return entity;
         }
     }
