@@ -15,6 +15,7 @@ namespace LogicSpace.EntityAppearance.Rules
 
             var squareSprite = GetStandardSquareSprite();
             var spriteRenderer = go.AddComponent<SpriteRenderer>();
+            spriteRenderer.color = entity.Color;
             spriteRenderer.sprite = squareSprite;
             spriteRenderer.sortingOrder = -1;
         }

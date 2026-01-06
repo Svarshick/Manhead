@@ -1,3 +1,5 @@
+using UnityEngine;
+
 namespace LogicSpace.GameEntity
 {
     public interface IEntity
@@ -7,6 +9,7 @@ namespace LogicSpace.GameEntity
         public IEntitySide FrontSide { get; }
         public IEntitySide BackSide { get; }
         public T GetComponent<T>() where T : EntityComponent;
+        public Color Color { get; }
     }
 
     public interface IEntitySide

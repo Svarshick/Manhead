@@ -14,6 +14,7 @@ namespace LogicSpace.EditorData
         public EntitySideData LeftSide;
         public EntitySideData BackSide;
         public EntitySideData RightSide;
+        public Color Color = Color.white;
 
         public T GetComponent<T>() where T : EntityComponent
         {
@@ -24,6 +25,7 @@ namespace LogicSpace.EditorData
         IEntitySide IEntity.LeftSide => LeftSide;
         IEntitySide IEntity.BackSide => BackSide;
         IEntitySide IEntity.RightSide => RightSide;
+        Color IEntity.Color => Color;
     }
 
     [Serializable]

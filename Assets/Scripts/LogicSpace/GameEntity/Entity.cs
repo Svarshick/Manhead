@@ -53,6 +53,7 @@ namespace LogicSpace.GameEntity
 
             //TODO: dirty
             Appearance = data.transform.GetChild(0).gameObject;
+            Color = data.Color;
         }
 
         public Cell Cell { get; private set; }
@@ -90,7 +91,9 @@ namespace LogicSpace.GameEntity
         IEntitySide IEntity.LeftSide => LeftSide;
         IEntitySide IEntity.BackSide => BackSide;
         IEntitySide IEntity.RightSide => RightSide;
-
+        
+        public Color Color { get; set; }
+        
         public T GetComponent<T>() where T : EntityComponent
         {
             if (_components.TryGetValue(typeof(T), out var component))
