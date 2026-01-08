@@ -2,7 +2,7 @@ using LogicSpace.EditorData;
 using UnityEditor;
 using UnityEngine.UIElements;
 
-namespace Editor
+namespace Editor.FieldEditor
 {
     [CustomEditor(typeof(FieldData))]
     public class FieldEditor : UnityEditor.Editor

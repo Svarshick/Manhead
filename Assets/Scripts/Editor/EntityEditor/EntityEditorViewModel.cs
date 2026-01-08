@@ -6,48 +6,63 @@ using LogicSpace.EntityAppearance.Rules;
 using PlayerSpace.UI;
 using R3;
 using UnityEditor;
+using UnityEngine;
 using Object = UnityEngine.Object;
 
 namespace Editor.EntityEditor
 {
     public class EntityEditorViewModel : ViewModel
     {
-        private readonly EntityAppearanceBuilder _appearanceBuilder;
-        private readonly string _prefabPath;
-        public readonly EntitySideViewModel BackSideViewModel;
-        public readonly EntityData EntityData;
-        public readonly SerializedObject EntitySO;
+        private enum State
+        {
+            PrefabAsset,
+            SceneGO
+        }
 
+        private readonly EntityData _entityData;
+        private readonly GameObject _prefabAsset;
+        private readonly SerializedObject _entitySO;
+        private readonly State _state;
+        
         public readonly EntityViewModel EntityViewModel;
         public readonly EntitySideViewModel FrontSideViewModel;
-        public readonly Subject<Unit> internalSelectionChanged = new();
         public readonly EntitySideViewModel LeftSideViewModel;
         public readonly EntitySideViewModel RightSideViewModel;
+        public readonly EntitySideViewModel BackSideViewModel;
 
+        public readonly Subject<Unit> internalSelectionChanged = new();
         private bool _dataChanged;
-
+        
+        private readonly EntityAppearanceBuilder _appearanceBuilder;
+        
         public EntityEditorViewModel(EntityData entityData)
         {
-            EntityData = entityData ?? throw new ArgumentNullException(nameof(entityData));
+            _entityData = entityData ?? throw new ArgumentNullException(nameof(entityData));
             if (PrefabUtility.IsPartOfPrefabAsset(entityData) && entityData.gameObject.transform.parent == null)
             {
-                _prefabPath = AssetDatabase.GetAssetPath(entityData);
-                var rootGO = PrefabUtility.LoadPrefabContents(_prefabPath);
-                EntityData = rootGO.GetComponent<EntityData>();
+                _state = State.PrefabAsset;
+                _prefabAsset = _entityData.gameObject;
+                var prefabPath = AssetDatabase.GetAssetPath(entityData);
+                var root = PrefabUtility.LoadPrefabContents(prefabPath);
+                _entityData = root.GetComponent<EntityData>();
+            }
+            else
+            {
+                _state = State.SceneGO;
             }
 
-            EntitySO = new SerializedObject(EntityData);
+            _entitySO = new SerializedObject(_entityData);
 
             Action dataChangedAction = () => _dataChanged = true;
-            EntityViewModel = new EntityViewModel(EntitySO, dataChangedAction);
-            var leftSideProperty = EntitySO.FindProperty("LeftSide");
-            var rightSideProperty = EntitySO.FindProperty("RightSide");
-            var frontSideProperty = EntitySO.FindProperty("FrontSide");
-            var backSideProperty = EntitySO.FindProperty("BackSide");
-            LeftSideViewModel = new EntitySideViewModel(EntitySO, leftSideProperty, dataChangedAction);
-            RightSideViewModel = new EntitySideViewModel(EntitySO, rightSideProperty, dataChangedAction);
-            FrontSideViewModel = new EntitySideViewModel(EntitySO, frontSideProperty, dataChangedAction);
-            BackSideViewModel = new EntitySideViewModel(EntitySO, backSideProperty, dataChangedAction);
+            EntityViewModel = new EntityViewModel(_entitySO, dataChangedAction);
+            var leftSideProperty = _entitySO.FindProperty("LeftSide");
+            var rightSideProperty = _entitySO.FindProperty("RightSide");
+            var frontSideProperty = _entitySO.FindProperty("FrontSide");
+            var backSideProperty = _entitySO.FindProperty("BackSide");
+            LeftSideViewModel = new EntitySideViewModel(_entitySO, leftSideProperty, dataChangedAction);
+            RightSideViewModel = new EntitySideViewModel(_entitySO, rightSideProperty, dataChangedAction);
+            FrontSideViewModel = new EntitySideViewModel(_entitySO, frontSideProperty, dataChangedAction);
+            BackSideViewModel = new EntitySideViewModel(_entitySO, backSideProperty, dataChangedAction);
 
             var arrowRule = new ArrowEntityVisualizationRule();
             var baseRule = new BaseEntityVisualizationRule();
@@ -56,15 +71,13 @@ namespace Editor.EntityEditor
 
         public void Update()
         {
-            if (!EntitySO.UpdateIfRequiredOrScript())
-                return;
-
             if (!_dataChanged)
                 return;
             _dataChanged = false;
 
             ResetAppearance();
-            if (_prefabPath != null) PrefabUtility.SaveAsPrefabAsset(EntityData.gameObject, _prefabPath);
+            if (_state == State.PrefabAsset)
+                PrefabUtility.SaveAsPrefabAsset(_entityData.gameObject, AssetDatabase.GetAssetPath(_prefabAsset));
 
             EntityViewModel.Update();
             LeftSideViewModel.Update();
@@ -75,11 +88,11 @@ namespace Editor.EntityEditor
 
         private void ResetAppearance()
         {
-            var t = EntityData.transform;
+            var t = _entityData.transform;
             //NOTE: side effect
             while (t.childCount > 0) Object.DestroyImmediate(t.GetChild(0).gameObject);
 
-            var appearanceGO = _appearanceBuilder.BuildAppearance(EntityData);
+            var appearanceGO = _appearanceBuilder.BuildAppearance(_entityData);
 
             if (appearanceGO != null) appearanceGO.transform.SetParent(t, false);
         }

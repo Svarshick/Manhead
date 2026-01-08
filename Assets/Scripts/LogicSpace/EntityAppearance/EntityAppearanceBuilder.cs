@@ -17,7 +17,6 @@ namespace LogicSpace.EntityAppearance
         public GameObject BuildAppearance(IEntity entity)
         {
             var rootGO = new GameObject("Appearance");
-            //rootGO.hideFlags = HideFlags.HideAndDontSave; //if something went wrong
             var context = new EntityVisualizationContext { RootGO = rootGO };
             foreach (var rule in _rules) rule.Apply(entity, context);
 

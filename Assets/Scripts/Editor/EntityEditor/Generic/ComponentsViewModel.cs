@@ -7,12 +7,11 @@ namespace Editor.EntityEditor.Generic
 {
     public class ComponentsViewModel<TComponent> : ViewModel
     {
-        public readonly Subject<Unit> componentsChanged;
-
-        public readonly Action dataChangedAction;
         public readonly SerializedProperty ListSP;
         public readonly SerializedObject TargetSO;
+        public readonly Action dataChangedAction;
 
+        public readonly Subject<Unit> componentsListChanged;
         private long _lastStructureHash;
 
         public ComponentsViewModel(
@@ -24,7 +23,7 @@ namespace Editor.EntityEditor.Generic
             ListSP = listSP ?? throw new ArgumentNullException(nameof(listSP));
             //TODO: refactor naming
             this.dataChangedAction = dataChangedAction;
-            componentsChanged = new Subject<Unit>();
+            componentsListChanged = new Subject<Unit>();
 
             _lastStructureHash = ComputeStructureHash();
         }
@@ -62,7 +61,7 @@ namespace Editor.EntityEditor.Generic
             if (currentHash != _lastStructureHash)
             {
                 _lastStructureHash = currentHash;
-                componentsChanged.OnNext(Unit.Default);
+                componentsListChanged.OnNext(Unit.Default);
                 dataChangedAction.Invoke();
             }
         }
@@ -91,7 +90,7 @@ namespace Editor.EntityEditor.Generic
 
         public override void Dispose()
         {
-            componentsChanged.Dispose();
+            componentsListChanged.Dispose();
         }
     }
 }

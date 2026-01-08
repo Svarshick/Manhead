@@ -37,7 +37,7 @@ namespace Editor.EntityEditor.Generic
 
         protected override void BindViewData()
         {
-            ViewModel.componentsChanged
+            ViewModel.componentsListChanged
                 .Subscribe(_ => RebuildList())
                 .AddTo(Disposables);
 

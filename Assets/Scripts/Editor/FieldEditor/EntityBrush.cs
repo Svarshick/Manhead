@@ -7,7 +7,7 @@ using UnityEditor.Tilemaps;
 using UnityEngine;
 using Object = UnityEngine.Object;
 
-namespace Editor
+namespace Editor.FieldEditor
 {
     [CustomGridBrush(true, false, false, "Entity Brush")]
     public class EntityBrush : GridBrushBase
