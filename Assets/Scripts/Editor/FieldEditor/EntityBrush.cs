@@ -119,14 +119,14 @@ namespace Editor.FieldEditor
             BoxFill(gridLayout, brushTarget, bounds);
         }
 
-        private void PaintCell(GridLayout grid, Vector3Int position, FieldData targetField, BrushCell cell)
+        private void PaintCell(GridLayout grid, Vector3Int position, Transform parent, BrushCell cell)
         {
             if (cell.gameObject == null)
                 return;
 
-            var existingGO = GetObjectInCell(grid, targetField.CellBox.transform, position, m_Anchor, cell.offset);
+            var existingGO = GetObjectInCell(grid, parent, position, m_Anchor, cell.offset);
             if (existingGO == null)
-                SetSceneCell(grid, targetField, position, cell.gameObject, cell.offset, cell.scale, cell.orientation,
+                SetSceneCell(grid, parent, position, cell.gameObject, cell.offset, cell.scale, cell.orientation,
                     m_Anchor);
         }
 
@@ -138,46 +138,36 @@ namespace Editor.FieldEditor
             BoxErase(gridLayout, brushTarget, bounds);
         }
 
-        private void EraseCell(GridLayout grid, Vector3Int position, FieldData targetField, BrushCell cell)
+        private void EraseCell(GridLayout grid, Vector3Int position, Transform parent, BrushCell cell)
         {
-            var erased = GetObjectInCell(grid, targetField.CellBox.transform, position, m_Anchor, cell.offset);
+            var erased = GetObjectInCell(grid, parent, position, m_Anchor, cell.offset);
             if (erased != null)
                 Undo.DestroyObjectImmediate(erased);
         }
 
         public override void BoxFill(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
         {
-            if (!ValidateTarget(brushTarget, out var targetField))
-            {
-                Debug.LogWarning("Invalid target");
-                return;
-            }
-
+            var transform = GetTargettingTransform(brushTarget);
             GetGrid(ref gridLayout, ref brushTarget);
 
             foreach (var location in position.allPositionsWithin)
             {
                 var local = location - position.min;
                 var cell = m_Cells[GetCellIndexWrapAround(local.x, local.y, local.z)];
-                PaintCell(gridLayout, location, targetField, cell);
+                PaintCell(gridLayout, location, transform, cell);
             }
         }
 
         public override void BoxErase(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
         {
-            if (!ValidateTarget(brushTarget, out var targetField))
-            {
-                Debug.LogWarning("Invalid target");
-                return;
-            }
-
+            var transform = GetTargettingTransform(brushTarget);
             GetGrid(ref gridLayout, ref brushTarget);
 
             foreach (var location in position.allPositionsWithin)
             {
                 var local = location - position.min;
                 var cell = m_Cells[GetCellIndexWrapAround(local.x, local.y, local.z)];
-                EraseCell(gridLayout, location, targetField, cell);
+                EraseCell(gridLayout, location, transform, cell);
             }
         }
 
@@ -275,12 +265,7 @@ namespace Editor.FieldEditor
 
         public override void MoveStart(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
         {
-            if (!ValidateTarget(brushTarget, out var targetField))
-            {
-                Debug.LogWarning("Invalid target");
-                return;
-            }
-
+            var transform = GetTargettingTransform(brushTarget);
             GetGrid(ref gridLayout, ref brushTarget);
 
             Reset();
@@ -289,21 +274,15 @@ namespace Editor.FieldEditor
             foreach (var pos in position.allPositionsWithin)
             {
                 var brushPosition = new Vector3Int(pos.x - position.x, pos.y - position.y, 0);
-                PickCell(pos, brushPosition, gridLayout, targetField.CellBox.transform);
+                PickCell(pos, brushPosition, gridLayout, transform);
                 var cell = m_Cells[GetCellIndex(brushPosition)];
-                EraseCell(gridLayout, pos, targetField, cell);
+                EraseCell(gridLayout, pos, transform, cell);
             }
         }
 
         /// TODO figure it out
         public override void MoveEnd(GridLayout gridLayout, GameObject brushTarget, BoundsInt position)
         {
-            if (!ValidateTarget(brushTarget, out var targetField))
-            {
-                Debug.LogWarning("Invalid target");
-                return;
-            }
-
             GetGrid(ref gridLayout, ref brushTarget);
             Paint(gridLayout, brushTarget, position.min);
             Reset();
@@ -320,19 +299,14 @@ namespace Editor.FieldEditor
             gridLayout = brushTarget.GetComponent<GridLayout>();
         }
 
-        //target can't be null
-        //NOTE: validating target
-        //TODO: erase it in future, because it prevents from painting/erasing on palete
-        private bool ValidateTarget(GameObject brushTarget, out FieldData targetField)
+        //NOTE: Fill CellBox instead of FieldData
+        private Transform GetTargettingTransform(GameObject brushTarget)
         {
-            if (brushTarget == null)
+            if (brushTarget.TryGetComponent<FieldData>(out var field))
             {
-                targetField = null;
-                return false;
+                return field.CellBox.transform;
             }
-
-            targetField = brushTarget.GetComponent<FieldData>();
-            return targetField != null;
+            return brushTarget.transform;
         }
 
         private void FlipX()
@@ -496,7 +470,7 @@ namespace Editor.FieldEditor
                     m_Cells[GetCellIndex(pos)] = new BrushCell();
         }
 
-        private static void SetSceneCell(GridLayout grid, FieldData targetField, Vector3Int position, GameObject go,
+        private static void SetSceneCell(GridLayout grid, Transform parent, Vector3Int position, GameObject go,
             Vector3 offset, Vector3 scale, Quaternion orientation, Vector3 anchor)
         {
             if (go == null)
@@ -505,12 +479,12 @@ namespace Editor.FieldEditor
             GameObject instance;
             if (PrefabUtility.IsPartOfPrefabAsset(go))
             {
-                instance = (GameObject)PrefabUtility.InstantiatePrefab(go, targetField.transform.root.gameObject.scene);
-                instance.transform.parent = targetField.CellBox.transform;
+                instance = (GameObject)PrefabUtility.InstantiatePrefab(go, parent.root.gameObject.scene);
+                instance.transform.parent = parent;
             }
             else
             {
-                instance = Instantiate(go, targetField.CellBox.transform);
+                instance = Instantiate(go, parent);
                 instance.name = go.name;
                 instance.SetActive(true);
                 foreach (var renderer in instance.GetComponentsInChildren<Renderer>()) renderer.enabled = true;
