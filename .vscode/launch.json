@@ -1,0 +1,32 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Manhead (DesktopGL)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Manhead.DesktopGL/Manhead.DesktopGL.csproj",
+            "preLaunchTask": "Build: Manhead.DesktopGL"
+        },
+        {
+            "name": "Manhead (DesktopVK)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Manhead.DesktopVK/Manhead.DesktopVK.csproj",
+            "preLaunchTask": "Build: Manhead.DesktopVK"
+        },
+        {
+            "name": "Manhead (WindowsDX12)",
+            "type": "dotnet",
+            "request": "launch",
+            "projectPath": "${workspaceFolder}/Manhead.WindowsDX12/Manhead.WindowsDX12.csproj",
+            "preLaunchTask": "Build: Manhead.WindowsDX12"
+        },
+        {
+            "name": "Manhead (Android / iOS)",
+            "type": "maui",
+            "request": "launch",
+            "preLaunchTask": "maui: Build"
+        }
+    ]
+}
