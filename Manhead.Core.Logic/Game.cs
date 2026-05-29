@@ -57,7 +57,7 @@ public sealed class Game : Microsoft.Xna.Framework.Game
             Content = base.Content;
             _input = new Input();
             _gridLayout = new GridLayout(ScreenLayout.ToPixels(1, 1));
-            _editor = new WorldEditor(_input.Editor, _gridLayout);
+            _editor = new WorldEditor(_input.Editor, GraphicsDevice, _gridLayout);
         }
         
         void DoStuff()
