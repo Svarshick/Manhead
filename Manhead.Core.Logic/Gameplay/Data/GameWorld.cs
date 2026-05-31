@@ -25,11 +25,11 @@ public class Field<T>
 
     public int Width => _data.Length;
     public int Height => _data[0].Length;
-    public bool Has(Point position) => 
+    public bool InBounds(Point position) => 
         0 <= position.X && position.X < Width && 
         0 <= position.Y && position.Y < Height;
     
-    public bool Has(int x, int y) => 
+    public bool InBounds(int x, int y) => 
         0 <= x && x < Width && 
         0 <= y && y < Height;
     

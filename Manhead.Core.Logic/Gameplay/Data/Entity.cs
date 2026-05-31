@@ -1,6 +1,7 @@
 using Manhead.Core.Logic.Gameplay.Data.Components;
 using Microsoft.Xna.Framework;
 using ModelMediator.Abstractions;
+using ObservableCollections;
 
 namespace Manhead.Core.Logic.Gameplay.Data;
 
@@ -12,10 +13,9 @@ public partial class Entity
     public readonly EntitySide BottomSide = new();
     public readonly EntitySide LeftSide = new();
     public readonly EntitySide RightSide = new();
-    
-    private readonly List<IComponent> _components = new();
-    
-    public IEnumerable<IComponent> Components => _components;
+
+    public IReadOnlyObservableList<IComponent> Components => _components;
+    private readonly ObservableList<IComponent> _components = new();
     
     public T? GetComponent<T>() where T : class, IComponent
     {
@@ -36,6 +36,22 @@ public partial class Entity
         
         _components.Add(component);
         Changed.OnNext(nameof(Components));
+    }
+
+    public void RemoveComponent(Type type)
+    {
+        for (int i = 0; i < _components.Count; i++)
+        {
+            if (_components[i].GetType() == type)
+            {
+                _components[i].Dispose();
+                _components.RemoveAt(i);
+                Changed.OnNext(nameof(Components));
+                return;
+            }
+        }
+
+        throw new ArgumentException($"The component {type.Name} isn't attached");
     }
     
     public void RemoveComponent<T>() where T : class, IComponent

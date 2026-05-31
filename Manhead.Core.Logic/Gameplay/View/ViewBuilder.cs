@@ -45,14 +45,23 @@ public abstract class View : IDrawable
     public Vector2 AbsolutePosition { get; private set; }
     public float AbsoluteDepth { get; private set; }
 
-    protected abstract void DrawThis();
+    protected abstract void DrawThis(Vector2 position);
 
     public void Draw()
     {
-        DrawThis();
+        DrawThis(Vector2.Zero);
         foreach (var child in _children)
         {
             child.Draw();
+        }
+    }
+
+    public void DrawAt(Vector2 position)
+    {
+        DrawThis(position);
+        foreach (var child in _children)
+        {
+            child.DrawAt(position);
         }
     }
 
@@ -66,6 +75,15 @@ public abstract class View : IDrawable
     {
         _children.Remove(child);
         child.Parent = null;
+    }
+
+    public void ClearChild()
+    {
+        foreach (var child in _children)
+        {
+            child.Parent = null;
+        }
+        _children.Clear();
     }
 
     private void RecalculatePosition()
@@ -91,10 +109,10 @@ public sealed class SpriteView : View
 {
     public Sprite Sprite;
 
-    protected override void DrawThis()
+    protected override void DrawThis(Vector2 position)
     {
         Sprite.Depth = AbsoluteDepth;
-        Game.SpriteBatch.Draw(Sprite, AbsolutePosition);
+        Game.SpriteBatch.Draw(Sprite, position + AbsolutePosition);
     }
 }
 
@@ -104,21 +122,29 @@ public sealed class RectangleView : View
     public float Height;
     public Color Color;
 
-    protected override void DrawThis()
+    protected override void DrawThis(Vector2 position)
     {
-        Game.SpriteBatch.FillRectangle(
-            AbsolutePosition.X - Width / 2,
-            AbsolutePosition.Y - Height / 2,
+        Game.SpriteBatch.DrawRectangle(
+            position.X + AbsolutePosition.X - Width / 2,
+            position.Y + AbsolutePosition.Y - Height / 2,
             Width,
             Height,
             Color,
+            Math.Min(Width, Height),
             AbsoluteDepth);
+    }
+}
+
+public sealed class ViewContainer : View
+{
+    protected override void DrawThis(Vector2 position)
+    {
     }
 }
 
 public class ViewBuilder(GridLayout gridLayout)
 {
-    public View CreateAppearance(Entity entity)
+    public View Build(Entity entity)
     {
         var visible = entity.GetComponent<Visible>();
         var baseView = new RectangleView();

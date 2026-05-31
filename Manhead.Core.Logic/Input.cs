@@ -40,13 +40,13 @@ public class Input : IUpdatable
         {
             var uiInput = Game.GumService.Cursor?.VisualOver is not null;
             InputOwner = uiInput ? InputOwner.UI : InputOwner.Game;
-            Console.WriteLine((uiInput ? "UI" : "Game") + $": {Time.TotalGameTime.TotalSeconds}");
+            //Console.WriteLine((uiInput ? "UI" : "Game") + $": {Time.TotalGameTime.TotalSeconds}");
         }
 
         if (InputOwner != InputOwner.None && !hasInput)
         {
             InputOwner = InputOwner.None;
-            Console.WriteLine("None" + $": {Time.TotalGameTime.TotalSeconds}");
+            //Console.WriteLine("None" + $": {Time.TotalGameTime.TotalSeconds}");
         }
 
         switch (InputOwner)

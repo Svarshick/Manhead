@@ -19,7 +19,7 @@ namespace Manhead.Core.Logic.Gameplay.Movement
         {
             var oldPosition = _gridLayout.WorldToGrid(view.Position);
             var newPosition = oldPosition + direction.ToPoint();
-            if (!_field.Has(newPosition))
+            if (!_field.InBounds(newPosition))
                 throw new ArgumentOutOfRangeException($"cell in {newPosition} does not exist");
             
             var newWorldPosition = _gridLayout.GridToWorld(newPosition);
@@ -34,7 +34,7 @@ namespace Manhead.Core.Logic.Gameplay.Movement
         public bool CanMove(Point fromPosition, Direction toDirection)
         {
             var toPosition = fromPosition + toDirection.ToPoint();
-            return _field.Has(toPosition);
+            return _field.InBounds(toPosition);
         }
     }
 }

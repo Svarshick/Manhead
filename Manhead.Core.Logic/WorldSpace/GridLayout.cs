@@ -26,6 +26,13 @@ public class GridLayout
         return new Vector2(x, y);
     }
 
+    public Vector2 GridToWorld(int x, int y)
+    {
+        var vx = x * CellSize.X + CellSize.X / 2;
+        var vy = y * CellSize.Y + CellSize.Y / 2;
+        return new Vector2(vx, vy);
+    }
+
     public RectangleF GridRectangle(Point gridPosition)
     {
         var x = gridPosition.X * CellSize.X;

@@ -1,7 +1,5 @@
 using Manhead.Core.Logic.Editor.Data;
-using Manhead.Core.Logic.Gameplay.Data;
-using Manhead.Core.Logic.Gameplay.Data.Components;
-using Manhead.Core.Logic.Gameplay.View;
+using Manhead.Core.Logic.Editor.UI;
 using Manhead.Core.Logic.WorldSpace;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -12,17 +10,18 @@ public class WorldEditor : IDrawable
 {
     private readonly Input _input;
     private readonly GridLayout _gridLayout;
-    private readonly Field<Placement> _field;
     private readonly GridView _gridView;
-    private readonly TemplatesHolder _templatesHolder;
-    private readonly Template _template;
+    private readonly TemplateHolder _templateHolder;
     
-    private readonly EditorUi _ui;
+    private readonly EventBus _eventBus;
+    private readonly EditorView _view;
+    private Template? _selectedTemplate;
     
     public readonly Texture2D SquareTexture;
     
     private float _minZoom = 0.1f;
     private float _maxZoom = 2f;
+
     
     public WorldEditor(
         Input input, 
@@ -33,22 +32,13 @@ public class WorldEditor : IDrawable
     {
         _input = input;
         _gridLayout = gridLayout;
-        _field = new(width, height);
         _gridView = new(graphicsDevice, gridLayout);
         _gridView.Width = width;
         _gridView.Height = height;
-        
-        var viewBuilder = new ViewBuilder(_gridLayout);
-        var viewHolder = new ViewHolder(viewBuilder, _gridLayout, _field.Width, _field.Height);
-        _templatesHolder = new(viewHolder);
-        var entity = new Entity();
-        var visibleComponent = new Visible();
-        visibleComponent.Color = Color.Red;
-        entity.AddComponent(visibleComponent);
-        _template = new Template(entity);
-        _templatesHolder.AddTemplate(_template);
-        
-        _ui = new EditorUi();
+       _templateHolder = new (_gridLayout, width, height);
+       
+        _eventBus = new EventBus();
+        _view = new EditorView(_templateHolder, _eventBus);
         
         SquareTexture = Game.Content.Load<Texture2D>("Content/Square");
        
@@ -56,36 +46,35 @@ public class WorldEditor : IDrawable
         _input.Remove += OnRemove;
         _input.UpdateDrag += OnUpdateDrag;
         _input.Zoom += OnZoom;
+        _eventBus.TemplateSelected += template => _selectedTemplate = template;
     }
     
     private void OnPut(Vector2 mousePosition)
     {
         var worldPosition = Game.ScreenLayout.Camera.ScreenToWorld(mousePosition);
         var gridPosition = _gridLayout.WorldToGrid(worldPosition);
-        if (!_field.Has(gridPosition) || _field[gridPosition].Count > 0)
+        if (_templateHolder.IsFilled(gridPosition))
+        {
+            var placement = _templateHolder.GetPlacement(gridPosition);
+            _eventBus.SelectTemplate(placement.Template);
+            return;
+        }
+        
+        if (_selectedTemplate is null ||
+            !_templateHolder.IsFree(gridPosition))
             return;
 
-        var placement = new Placement(null, gridPosition);
-        _field[gridPosition].Add(placement);
-        _templatesHolder.AddPlacement(_template, gridPosition);
-        /*
-        var appearance = new RectangleView();
-        appearance.Width = _gridLayout.CellSize.X;
-        appearance.Height = _gridLayout.CellSize.Y;
-        appearance.Color = Color.White;
-        appearance.RelativePosition = _gridLayout.GridToWorld(gridPosition);
-        _views.Add(appearance);*/
+        _templateHolder.AddPlacement(_selectedTemplate, gridPosition);
     }
 
     private void OnRemove(Vector2 mousePosition)
     {
         var worldPosition = Game.ScreenLayout.Camera.ScreenToWorld(mousePosition);
         var gridPosition = _gridLayout.WorldToGrid(worldPosition);
-        if (!_field.Has(gridPosition))
+        if (!_templateHolder.IsFilled(gridPosition))
             return;
-
-        _field[gridPosition].Clear();
-        _templatesHolder.RemovePlacement(_template, gridPosition);
+        
+        _templateHolder.RemovePlacement(gridPosition);
     }
 
     private void OnZoom(float deltaZoom)
@@ -115,6 +104,6 @@ public class WorldEditor : IDrawable
     public void Draw()
     {
         _gridView.Draw();
-        _templatesHolder.View.Draw();
+        _templateHolder.TemplatesView.Draw();
     }
 }
