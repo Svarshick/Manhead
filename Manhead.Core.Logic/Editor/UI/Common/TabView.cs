@@ -3,9 +3,8 @@ using Gum.Forms.Controls;
 using Gum.GueDeriving;
 using Gum.Wireframe;
 using Microsoft.Xna.Framework;
-using MonoGameGum;
 
-namespace Manhead.Core.Logic.Editor.UI;
+namespace Manhead.Core.Logic.Editor.UI.Common;
 
 public class TabView : ContainerRuntime 
 {

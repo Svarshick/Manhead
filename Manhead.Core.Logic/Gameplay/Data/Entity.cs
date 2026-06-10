@@ -5,17 +5,39 @@ using ObservableCollections;
 
 namespace Manhead.Core.Logic.Gameplay.Data;
 
+public interface IComponentHolder
+{
+    IReadOnlyObservableList<IComponent> Components { get; }
+    bool HasComponent(Type type);
+    T? GetComponent<T>() where T : class, IComponent;
+    void AddComponent<T>(T component) where T : class, IComponent;
+    void RemoveComponent(Type type);
+    void RemoveComponent<T>() where T : class, IComponent;
+    
+}
+
 [Model]
 [Prop<Point>("Position")]
-public partial class Entity
+public partial class Entity : IComponentHolder
 {
-    public readonly EntitySide FrontSide = new();
-    public readonly EntitySide BottomSide = new();
     public readonly EntitySide LeftSide = new();
     public readonly EntitySide RightSide = new();
+    public readonly EntitySide FrontSide = new();
+    public readonly EntitySide BackSide = new();
 
     public IReadOnlyObservableList<IComponent> Components => _components;
     private readonly ObservableList<IComponent> _components = new();
+    
+    public bool HasComponent(Type type)
+    {
+        foreach (var component in _components)
+        {
+            if (component.GetType().IsAssignableFrom(type))
+                return true;
+        }
+
+        return false;
+    }
     
     public T? GetComponent<T>() where T : class, IComponent
     {
@@ -28,7 +50,7 @@ public partial class Entity
         return null;
     }
     
-    internal void AddComponent<T>(T component) where T : class, IComponent
+    public void AddComponent<T>(T component) where T : class, IComponent
     {
         var existingComponent = GetComponent<T>();
         if (existingComponent != null)
@@ -72,13 +94,23 @@ public partial class Entity
 }
 
 [Model]
-public partial class EntitySide
+public partial class EntitySide : IComponentHolder
 {
-    private readonly List<ISideComponent> _components = new();
-    
-    public IEnumerable<ISideComponent> Components => _components;
-    
-    public T? GetComponent<T>() where T : class, ISideComponent
+    public IReadOnlyObservableList<IComponent> Components => _components;
+    private readonly ObservableList<IComponent> _components = new();
+       
+     public bool HasComponent(Type type)
+    {
+        foreach (var component in _components)
+        {
+            if (component.GetType().IsAssignableFrom(type))
+                return true;
+        }
+
+        return false;
+    }
+     
+    public T? GetComponent<T>() where T : class, IComponent
     {
         foreach (var component in _components)
         {
@@ -89,7 +121,7 @@ public partial class EntitySide
         return null;
     }
     
-    internal void AddComponent<T>(T component) where T : class, ISideComponent
+    public void AddComponent<T>(T component) where T : class, IComponent
     {
         var existingComponent = GetComponent<T>();
         if (existingComponent != null)
@@ -99,7 +131,7 @@ public partial class EntitySide
         Changed.OnNext(nameof(Components));
     }
     
-    public void RemoveComponent<T>() where T : class, ISideComponent
+    public void RemoveComponent<T>() where T : class, IComponent
     {
         for (int i = 0; i < _components.Count; i++)
         {
@@ -113,5 +145,21 @@ public partial class EntitySide
         }
 
         throw new ArgumentException($"The component {typeof(T).Name} isn't attached");
+    }
+    
+    public void RemoveComponent(Type type)
+    {
+        for (int i = 0; i < _components.Count; i++)
+        {
+            if (_components[i].GetType() == type)
+            {
+                _components[i].Dispose();
+                _components.RemoveAt(i);
+                Changed.OnNext(nameof(Components));
+                return;
+            }
+        }
+
+        throw new ArgumentException($"The component {type.Name} isn't attached");
     }
 }

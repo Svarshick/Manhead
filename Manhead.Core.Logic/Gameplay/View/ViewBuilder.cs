@@ -146,13 +146,62 @@ public class ViewBuilder(GridLayout gridLayout)
 {
     public View Build(Entity entity)
     {
-        var visible = entity.GetComponent<Visible>();
         var baseView = new RectangleView();
-        if (visible is null)
-            return baseView;
-        baseView.Color = visible.Color;
-        baseView.Width = gridLayout.CellSize.X;
-        baseView.Height = gridLayout.CellSize.Y;
+        var cellSize = gridLayout.CellSize;
+
+        if (entity.GetComponent<Visible>() is { } visible)
+        {
+            baseView.Color = visible.Color;
+            baseView.Width = cellSize.X;
+            baseView.Height = cellSize.Y;
+        }
+
+        var border = 5;
+        
+        if (entity.LeftSide.GetComponent<Wall>() is { } leftWall)
+        {
+            var view = new RectangleView();
+            view.Color = leftWall.Color;
+            view.RelativePosition = new (-(cellSize.X / 2), 0);
+            view.Width = border;
+            view.Height = cellSize.Y;
+            view.RelativeDepth = 0.1f;
+            baseView.AddChild(view);
+        }
+        
+        if (entity.RightSide.GetComponent<Wall>() is { } rightWall)
+        {
+            var view = new RectangleView();
+            view.Color = rightWall.Color;
+            view.RelativePosition = new (cellSize.X / 2, 0);
+            view.Width = border;
+            view.Height = cellSize.Y;
+            view.RelativeDepth = 0.1f;
+            baseView.AddChild(view);
+        }
+        
+        if (entity.FrontSide.GetComponent<Wall>() is { } frontSide)
+        {
+            var view = new RectangleView();
+            view.Color = frontSide.Color;
+            view.RelativePosition = new (0, - (cellSize.Y / 2));
+            view.Width = cellSize.X;
+            view.Height = border;
+            view.RelativeDepth = 0.1f;
+            baseView.AddChild(view);
+        }
+        
+        if (entity.BackSide.GetComponent<Wall>() is { } backSide)
+        {
+            var view = new RectangleView();
+            view.Color = backSide.Color;
+            view.RelativePosition = new (0, cellSize.Y / 2);
+            view.Width = cellSize.X;
+            view.Height = border;
+            view.RelativeDepth = 0.1f;
+            baseView.AddChild(view);
+        }
+        
         return baseView;
     }
 }

@@ -7,11 +7,11 @@ using R3;
 
 namespace Manhead.Core.Logic.Editor.UI.Components;
 
-public class VisibleView : ContainerRuntime, IDisposable 
+public class WallView : ContainerRuntime, IDisposable
 {
     private readonly IDisposable _subscriptions;
-    
-    public VisibleView(Visible component)
+
+    public WallView(Wall component)
     {
         var stack = new StackPanel
         {
@@ -22,16 +22,22 @@ public class VisibleView : ContainerRuntime, IDisposable
         };
         this.AddChild(stack);
 
-        var color = new ColorField<Visible.ColorProperty>(new Visible.ColorProperty(Game.DefaultSystem, component))
+        var hp = new IntField<Wall.HPProperty>(new Wall.HPProperty(Game.DefaultSystem, component))
+        {
+            WidthUnits = DimensionUnitType.RelativeToParent,
+            Width = 0,
+        };
+        var color = new ColorField<Wall.ColorProperty>(new Wall.ColorProperty(Game.DefaultSystem, component))
         {
             WidthUnits = DimensionUnitType.RelativeToParent,
             HeightUnits = DimensionUnitType.RelativeToChildren,
             Width = 0,
             Height = 0,
         };
-        
-        stack.AddChild(new Field(nameof(Manhead.Core.Logic.Gameplay.Data.Components.Visible.Color), color));
-        _subscriptions = Disposable.Combine(color);
+
+        stack.AddChild(new Field(nameof(Wall.HP), hp));
+        stack.AddChild(new Field(nameof(Wall.Color), color));
+        _subscriptions = Disposable.Combine(hp, color);
     }
 
     public void Dispose()

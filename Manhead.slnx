@@ -1,8 +1,6 @@
 ﻿<Solution>
   <Folder Name="/Platforms/">
     <Project Path="Manhead.DesktopGL/Manhead.DesktopGL.csproj" />
-    <Project Path="Manhead.DesktopVK/Manhead.DesktopVK.csproj" />
-    <Project Path="Manhead.WindowsDX12/Manhead.WindowsDX12.csproj" />
     <Project Path="Manhead.Android/Manhead.Android.csproj" />
   </Folder>
   <Project Path="Manhead.Content/Manhead.Content.csproj" />

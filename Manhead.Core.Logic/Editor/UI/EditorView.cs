@@ -3,14 +3,13 @@ using Gum.DataTypes;
 using Gum.Forms.Controls;
 using Manhead.Core.Logic.Editor.Data;
 using Microsoft.Xna.Framework;
-using MonoGameGum;
 using RenderingLibrary.Graphics;
 
 namespace Manhead.Core.Logic.Editor.UI;
 
 public class EditorView
 {
-    public static readonly Color PanelBgColor = new (24, 24, 28, 240);
+    public static readonly Color PanelBgColor = Color.Blue; //new (24, 24, 28, 240);
     public static readonly Color ListBgColor = new (16, 16, 18, 255);
     public static readonly Color AccentGreen = new (46, 139, 87, 255);
     public static readonly Color AccentRed = new (178, 34, 34, 255);
@@ -18,7 +17,7 @@ public class EditorView
     
     public EditorView(TemplateHolder templateHolder, EventBus eventBus)
     {
-        var root = GumService.Default.Root;
+        var root = MonoGameGum.GumService.Default.Root;
         var leftPanel = new LeftPanel(templateHolder, eventBus)
         {
             WidthUnits = DimensionUnitType.PercentageOfParent,

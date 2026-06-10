@@ -60,6 +60,7 @@ public class GridView : IDrawable
 
         Game.SpriteBatch.Begin(
             sortMode: SpriteSortMode.FrontToBack,
+            blendState: BlendState.AlphaBlend,
             rasterizerState: RasterizerState.CullNone,
             transformMatrix: Game.ScreenLayout.Camera.GetViewMatrix()
         );

@@ -27,7 +27,6 @@ public class Input : IUpdatable
         _gameInput = Editor;
         _defaultCursor = Game.GumService.Cursor;
         _disabledCursor = new DisabledCursor();
-        FormsUtilities.SetCursor(_disabledCursor);
     }
 
     public void Update()

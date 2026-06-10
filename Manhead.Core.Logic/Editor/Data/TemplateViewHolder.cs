@@ -1,3 +1,4 @@
+using Manhead.Core.Logic.Gameplay.Data;
 using Manhead.Core.Logic.Gameplay.View;
 using Manhead.Core.Logic.WorldSpace;
 using Microsoft.Xna.Framework;
@@ -42,7 +43,17 @@ public class TemplateViewHolder : IDrawable
         var view = new ViewContainer();
         view.AddChild(_builder.Build(template.Entity));
         var disposables = new CompositeDisposable();
-        var componentAdd = template.Entity.Components
+        ObserveHolder(template.Entity, disposables, template);
+        ObserveHolder(template.Entity.LeftSide, disposables, template);
+        ObserveHolder(template.Entity.RightSide, disposables, template);
+        ObserveHolder(template.Entity.FrontSide, disposables, template);
+        ObserveHolder(template.Entity.BackSide, disposables, template);
+        _templates.Add(template, (view, disposables));
+    }
+
+    private void ObserveHolder(IComponentHolder holder, CompositeDisposable disposables, Template template)
+    {
+        var componentAdd = holder.Components
             .ObserveAdd()
             .Subscribe(evt =>
             {
@@ -50,14 +61,13 @@ public class TemplateViewHolder : IDrawable
                 disposables.Add(evt.Value.Changed.Subscribe(_ => RefreshView(template)));
             });
         disposables.Add(componentAdd);
-        var componentRm = template.Entity.Components
+        var componentRm = holder.Components
             .ObserveRemove()
             .Subscribe(evg =>
             {
                 RefreshView(template);
             });
         disposables.Add(componentRm);
-        _templates.Add(template, (view, disposables));
     }
 
     private void RefreshView(Template template)

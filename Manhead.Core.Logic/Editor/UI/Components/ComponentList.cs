@@ -1,14 +1,13 @@
 using Gum.DataTypes;
-using Gum.Forms;
 using Gum.Forms.Controls;
 using Gum.GueDeriving;
 using Gum.Wireframe;
+using Manhead.Core.Logic.Editor.UI.Common;
 using Manhead.Core.Logic.Gameplay.Data;
 using Manhead.Core.Logic.Gameplay.Data.Components;
 using Microsoft.Xna.Framework;
 using ObservableCollections;
 using R3;
-using MonoGameGum;
 
 namespace Manhead.Core.Logic.Editor.UI.Components;
 
@@ -28,13 +27,13 @@ public class ComponentList : ContainerRuntime, IDisposable
         {
             Component = component;
             _componentList = componentList;
-            
+
             WidthUnits = DimensionUnitType.RelativeToParent;
             HeightUnits = DimensionUnitType.RelativeToChildren;
             Width = 0;
             Height = 0;
             StrokeColor = Color.Transparent;
-            FillColor  = Color.Transparent;
+            FillColor = Color.Transparent;
 
             var stackPanel = new StackPanel
             {
@@ -58,7 +57,7 @@ public class ComponentList : ContainerRuntime, IDisposable
                 }
             };
             stackPanel.AddChild(headerGrid);
-                
+
             var name = component.GetType().Name;
             var nameLabel = new Label
             {
@@ -79,9 +78,13 @@ public class ComponentList : ContainerRuntime, IDisposable
             _rmButton.Click += RemoveIt;
             headerGrid.AddChild(_rmButton, 0, 1);
 
-            var componentView = ComponentViewFabric.Create(component, out _subscription);
+            var componentView = ComponentViewFactory.Create(component, out _subscription);
+            componentView.WidthUnits = DimensionUnitType.RelativeToParent;
+            componentView.HeightUnits = DimensionUnitType.RelativeToChildren;
+            componentView.Width = 0;
+            componentView.Height = 0;
             stackPanel.AddChild(componentView);
-        }
+    }
         
         public void Dispose()
         {
@@ -91,82 +94,119 @@ public class ComponentList : ContainerRuntime, IDisposable
 
         private void RemoveIt(object? sender, EventArgs e)
         {
-            _componentList._entity.RemoveComponent(Component.GetType());
+            _componentList._componentHolder.RemoveComponent(Component.GetType());
         }
     }
 
-    private readonly Entity _entity;
+    private readonly IComponentHolder _componentHolder;
     private readonly ISynchronizedView<IComponent, ListElement> _componentsSyncView;
 
+    private State _state;
+    private enum State
+    {
+        List,
+        Search,
+    };
+    
+    private Grid _listGrid;
     private ListBox _listBox;
-    private Button _addVisibleButton;
-
+    private Button _addElementButton;
+    
+    private SearchDialog _searchDialog;
+    
     private readonly CompositeDisposable _disposables = new();
     
-    public ComponentList(Entity entity)
+    public ComponentList(IComponentHolder componentHolder, IReadOnlyList<Type> componentOptions)
     {
-        _entity = entity;
-        var grid = new Grid
+        _componentHolder = componentHolder;
+        //List
         {
-            WidthUnits = DimensionUnitType.RelativeToParent,
-            HeightUnits = DimensionUnitType.RelativeToParent,
-            RowDefinitions =
-            {
-                new RowDefinition(new GridLength(1, GridUnitType.Star)),
-                new RowDefinition(new GridLength(30, GridUnitType.Absolute)),
-            },
-        };
-        this.AddChild(grid);
-
-        //ScrollView
-        {
-            _listBox = new ListBox
+            _listGrid = new Grid
             {
                 WidthUnits = DimensionUnitType.RelativeToParent,
                 HeightUnits = DimensionUnitType.RelativeToParent,
-                Width = 0,
-                Height = 0,
-                VisualTemplate = new VisualTemplate(item => ((ListElement)item)),
-            };
-            grid.AddChild(_listBox, 0, 0);
-
-            _componentsSyncView = _entity.Components.CreateView(c => new ListElement(c, this));
-            _disposables.Add(_componentsSyncView);
-
-            var viewAdd = _componentsSyncView.ObserveAdd()
-                .Subscribe(evt => _listBox.Items.Add(evt.Value.View));
-            _disposables.Add(viewAdd);
-
-            var viewRemove = _componentsSyncView.ObserveRemove()
-                .Subscribe(evt =>
+                RowDefinitions =
                 {
-                    var view = evt.Value.View;
-                    view.Dispose();
-                    _listBox.Items.Remove(view);
-                    view.Dispose();
-                });
-            _disposables.Add(viewRemove);
+                    new RowDefinition(new GridLength(30, GridUnitType.Absolute)),
+                    new RowDefinition(new GridLength(1, GridUnitType.Star)),
+                },
+            };
+            this.AddChild(_listGrid);
 
-            foreach (var view in _componentsSyncView)
+            //ScrollView
             {
-                _listBox.Items.Add(view);
+                _listBox = new ListBox
+                {
+                    WidthUnits = DimensionUnitType.RelativeToParent,
+                    HeightUnits = DimensionUnitType.RelativeToParent,
+                    Width = 0,
+                    Height = 0,
+                };
+                _listGrid.AddChild(_listBox, 1, 0);
+
+                _componentsSyncView = _componentHolder.Components.CreateView(c => new ListElement(c, this));
+                _disposables.Add(_componentsSyncView);
+
+                var viewAdd = _componentsSyncView.ObserveAdd()
+                    .Subscribe(evt => _listBox.Items.Add(evt.Value.View));
+                _disposables.Add(viewAdd);
+
+                var viewRemove = _componentsSyncView.ObserveRemove()
+                    .Subscribe(evt =>
+                    {
+                        var view = evt.Value.View;
+                        view.Dispose();
+                        _listBox.Items.Remove(view);
+                        view.Dispose();
+                    });
+                _disposables.Add(viewRemove);
+
+                foreach (var view in _componentsSyncView)
+                {
+                    _listBox.Items.Add(view);
+                }
+            }
+
+            //Buttons
+            {
+                _addElementButton = new Button
+                {
+                    WidthUnits = DimensionUnitType.RelativeToParent,
+                    HeightUnits = DimensionUnitType.RelativeToParent,
+                    Width = 0,
+                    Height = 0,
+                    Text = "Add component"
+                };
+                _addElementButton.Click += (_, _) => ChangeState(State.Search);
+                _listGrid.AddChild(_addElementButton, 0, 0);
             }
         }
 
-        //Buttons
+        //SearchDialog
         {
-            _addVisibleButton = new Button
+            var options = componentOptions.Select(t => (t.Name, (object)t)).ToArray();
+            _searchDialog = new SearchDialog(options)
             {
                 WidthUnits = DimensionUnitType.RelativeToParent,
                 HeightUnits = DimensionUnitType.RelativeToParent,
                 Width = 0,
                 Height = 0,
-                Text = "Add Visible"
+                Visible = false,
             };
-            grid.AddChild(_addVisibleButton, 1, 0);
-            _addVisibleButton.Click += AddVisible;
+            AddChild(_searchDialog);
+            _searchDialog.Choose += (_, type) =>
+            {
+                ChangeState(State.List);
+                var componentType = (Type)type;
+                if (_componentHolder.HasComponent(componentType)) 
+                    return;
+                var component = (IComponent)Activator.CreateInstance(componentType)!;
+                _componentHolder.AddComponent(component);
+            };
+            _searchDialog.RollOff += (_, _) => ChangeState(State.List);
         }
     }
+    
     
     public void Dispose()
     {
@@ -178,13 +218,33 @@ public class ComponentList : ContainerRuntime, IDisposable
         }
     }
 
-    private void AddVisible(object? sender, EventArgs e)
+    private void ChangeState(State next)
     {
-        var component = _entity.GetComponent<Visible>();
+        if (next == State.Search && _state == State.List)
+        {
+            _listGrid.IsVisible = false;
+            _searchDialog.Visible = true;
+            _searchDialog.SearchBox.Text = string.Empty;
+            _searchDialog.FilterOptions();
+            _searchDialog.SearchBox.IsFocused = true;
+            _state = State.Search;
+        }
+        
+        else if (next == State.List && _state == State.Search)
+        {
+            _listGrid.IsVisible = true;
+            _searchDialog.Visible = false;
+            _state = State.List;
+        }
+    }
+    
+    private void AddElement()
+    {
+        var component = _componentHolder.GetComponent<Visible>();
         if (component is null)
         {
             var visible = new Visible();
-            _entity.AddComponent(visible);
+            _componentHolder.AddComponent(visible);
         }
     }
 }

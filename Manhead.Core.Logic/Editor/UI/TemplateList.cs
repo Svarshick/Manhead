@@ -6,7 +6,6 @@ using Manhead.Core.Logic.Editor.Data;
 using Manhead.Core.Logic.Gameplay.Data;
 using Microsoft.Xna.Framework;
 using ObservableCollections;
-using MonoGameGum;
 using R3;
 
 namespace Manhead.Core.Logic.Editor.UI;

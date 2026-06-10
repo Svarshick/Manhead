@@ -1,11 +1,14 @@
+using System.Linq.Expressions;
 using Gum.DataTypes;
 using Gum.Forms.Controls;
 using Gum.GueDeriving;
 using Gum.Wireframe;
 using Manhead.Core.Logic.Editor.Data;
+using Manhead.Core.Logic.Editor.UI.Common;
 using Manhead.Core.Logic.Editor.UI.Components;
-using Microsoft.Xna.Framework;
-using MonoGameGum;
+using Manhead.Core.Logic.Gameplay.Data;
+using Manhead.Core.Logic.Gameplay.Data.Components;
+using R3;
 
 namespace Manhead.Core.Logic.Editor.UI;
 
@@ -15,13 +18,13 @@ public class TemplateEditor : RectangleRuntime
     private TabView? _currentTabView;
     private Label? _templateNotSelected;
     
-    private IDisposable? _disposable;
+    private CompositeDisposable? _disposables;
     
     public TemplateEditor(EventBus eventBus)
     {
         _currentTemplate = null;
         _currentTabView = null;
-        _disposable = null;
+        _disposables = null;
         _templateNotSelected = CreateTemplateNotSelected();
         this.AddChild(_templateNotSelected);
         
@@ -34,7 +37,7 @@ public class TemplateEditor : RectangleRuntime
             return;
         
         _currentTemplate = template;
-        _disposable?.Dispose();
+        _disposables?.Dispose();
         if (_currentTabView is not null)
         {
             RemoveChild(_currentTabView);
@@ -55,22 +58,55 @@ public class TemplateEditor : RectangleRuntime
             return;
         }
         
-        var components = new ComponentList(template.Entity)
+        _disposables = new CompositeDisposable();
+
+        var selfComponents = new ComponentList(template.Entity, ComponentRegistry.EntityComponents)
         {
             WidthUnits = DimensionUnitType.RelativeToParent,
             HeightUnits = DimensionUnitType.RelativeToParent,
             Width = 0,
             Height = 0,
         };
-        _disposable = components;
+        
+        var leftSideComponents = new ComponentList(template.Entity.LeftSide, ComponentRegistry.SideComponents)
+        {
+            WidthUnits = DimensionUnitType.RelativeToParent,
+            HeightUnits = DimensionUnitType.RelativeToParent,
+            Width = 0,
+            Height = 0,
+        };
+
+        var rightSideComponents = new ComponentList(template.Entity.RightSide, ComponentRegistry.SideComponents)
+        {
+            WidthUnits = DimensionUnitType.RelativeToParent,
+            HeightUnits = DimensionUnitType.RelativeToParent,
+            Width = 0,
+            Height = 0,
+        };
+
+        var frontSideComponents = new ComponentList(template.Entity.FrontSide, ComponentRegistry.SideComponents)
+        {
+            WidthUnits = DimensionUnitType.RelativeToParent,
+            HeightUnits = DimensionUnitType.RelativeToParent,
+            Width = 0,
+            Height = 0,
+        };
+        
+        var backSideComponents = new ComponentList(template.Entity.BackSide, ComponentRegistry.SideComponents)
+        {
+            WidthUnits = DimensionUnitType.RelativeToParent,
+            HeightUnits = DimensionUnitType.RelativeToParent,
+            Width = 0,
+            Height = 0,
+        };
         
         var tabs = new (Button TabButton, GraphicalUiElement TabContent)[]
         {
-            (new Button { Text = "Self", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0 }, components),
-            (new Button { Text = "Left", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0 }, new RectangleRuntime { FillColor = Color.Green }),
-            (new Button { Text = "Right", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0}, new RectangleRuntime { FillColor = Color.Blue }),
-            (new Button { Text = "Front", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0 }, new RectangleRuntime { FillColor = Color.White }),
-            (new Button { Text = "Back", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0 }, new RectangleRuntime { FillColor = Color.Black }),
+            (new Button { Text = "Self", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0 }, selfComponents),
+            (new Button { Text = "Left", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0 }, leftSideComponents),
+            (new Button { Text = "Right", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0}, rightSideComponents),
+            (new Button { Text = "Front", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0 }, frontSideComponents),
+            (new Button { Text = "Back", WidthUnits = DimensionUnitType.RelativeToParent, Width = 0 }, backSideComponents),
         };
 
         _currentTabView = new TabView(tabs)

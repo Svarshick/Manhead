@@ -5,7 +5,6 @@ using Gum.GueDeriving;
 using Gum.Wireframe;
 using Microsoft.Xna.Framework;
 using RenderingLibrary.Graphics;
-using MonoGameGum;
 
 namespace Manhead.Core.Logic.Editor.UI;
 
@@ -30,8 +29,10 @@ public class RightPanel : ContainerRuntime
         };
         this.AddChild(mainGrid);
 
-        var outerContentPanel = new ContainerRuntime
+        var outerContentPanel = new RectangleRuntime
         {
+            FillColor = EditorView.PanelBgColor,
+            StrokeColor = EditorView.PanelBgColor,
             WidthUnits = DimensionUnitType.RelativeToParent,
             HeightUnits = DimensionUnitType.RelativeToParent,
             Width = 0,
@@ -66,17 +67,6 @@ public class RightPanel : ContainerRuntime
         };
         mainGrid.AddChild(collapseButton, 0, 0);
 
-        var outerContentBackground = new RectangleRuntime
-        {
-            FillColor = EditorView.PanelBgColor,
-            StrokeColor = EditorView.PanelBgColor,
-            WidthUnits = DimensionUnitType.RelativeToParent,
-            HeightUnits = DimensionUnitType.RelativeToParent,
-            Width = 0,
-            Height = 0
-        };
-        outerContentPanel.AddChild(outerContentBackground);
-        
         var contentMargin = 15;
         var templateEditor = new TemplateEditor(eventBus)
         {

@@ -4,6 +4,7 @@ using R3;
 
 namespace Manhead.Core.Logic.Gameplay.Data.Components;
 
+[Component(Kind.Entity)]
 [Model]
 [Prop<Color>("Color")]
 public partial class Visible : IComponent 
