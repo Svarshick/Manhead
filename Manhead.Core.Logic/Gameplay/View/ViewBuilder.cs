@@ -201,6 +201,26 @@ public class ViewBuilder(GridLayout gridLayout)
             view.RelativeDepth = 0.1f;
             baseView.AddChild(view);
         }
+
+        if (entity.GetComponent<Player>() is { } player)
+        {
+            var leftEye = new RectangleView();
+            leftEye.Color = Color.Black;
+            leftEye.Width = cellSize.X / 5;
+            leftEye.Height = cellSize.Y / 5;
+            leftEye.RelativePosition = new (- cellSize.X / 4, - cellSize.Y / 5);
+            var rightEye = new RectangleView();
+            rightEye.Color = Color.Black;
+            rightEye.Width = cellSize.X / 5;
+            rightEye.Height = cellSize.Y / 5;
+            rightEye.RelativePosition = new (cellSize.X / 4, - cellSize.Y / 5);
+            
+            var view = new ViewContainer();
+            view.RelativeDepth = 0.2f;
+            view.AddChild(leftEye);
+            view.AddChild(rightEye);
+            baseView.AddChild(view);
+        }
         
         return baseView;
     }

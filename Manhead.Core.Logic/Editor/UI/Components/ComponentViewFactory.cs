@@ -1,3 +1,4 @@
+using Gum.GueDeriving;
 using Gum.Wireframe;
 using Manhead.Core.Logic.Gameplay.Data.Components;
 
@@ -5,7 +6,7 @@ namespace Manhead.Core.Logic.Editor.UI.Components;
 
 public static class ComponentViewFactory
 {
-    public static GraphicalUiElement Create(IComponent component, out IDisposable disposable)
+    public static GraphicalUiElement Create(IComponent component, out IDisposable? disposable)
     {
         switch (component)
         {
@@ -15,11 +16,16 @@ public static class ComponentViewFactory
                 disposable = view;
                 return view;
             }
-            case Wall visible:
+            case Wall wall:
             {
-                var view = new WallView(visible);
+                var view = new WallView(wall);
                 disposable = view;
                 return view;
+            }
+            case Player player:
+            {
+                disposable = null;
+                return new ContainerRuntime();
             }
             default:
             {

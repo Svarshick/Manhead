@@ -7,7 +7,7 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="MonoGame.Extended" Version="6.0.0" />
-    <PackageReference Include="MonoGame.Framework.Native" Version="3.8.5-preview.4">
+    <PackageReference Include="MonoGame.Framework.Native" Version="3.8.5-preview.6">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>

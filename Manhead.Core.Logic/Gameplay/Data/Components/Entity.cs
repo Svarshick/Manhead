@@ -11,3 +11,10 @@ public partial class Visible : IComponent
 {
     Subject<string> IComponent.Changed => Changed;
 }
+
+[Component(Kind.Entity)]
+[Model]
+public partial class Player : IComponent
+{
+    Subject<string> IComponent.Changed => Changed;
+}

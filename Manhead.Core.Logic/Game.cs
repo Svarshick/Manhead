@@ -1,4 +1,5 @@
 using Apos.Shapes;
+using Gum.Wireframe;
 using Manhead.Core.Logic.Editor;
 using Manhead.Core.Logic.Editor.UI.Common;
 using Manhead.Core.Logic.WorldSpace;

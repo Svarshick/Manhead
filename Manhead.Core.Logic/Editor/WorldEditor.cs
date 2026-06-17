@@ -42,14 +42,14 @@ public class WorldEditor : IDrawable
         
         SquareTexture = Game.Content.Load<Texture2D>("Content/Square");
        
-        _input.Put += OnPut;
-        _input.Remove += OnRemove;
-        _input.UpdateDrag += OnUpdateDrag;
-        _input.Zoom += OnZoom;
+        _input.Draw += Draw;
+        _input.Erase += Remove;
+        _input.UpdateDrag += MoveCamera;
+        _input.Zoom += Zoom;
         _eventBus.TemplateSelected += template => _selectedTemplate = template;
     }
     
-    private void OnPut(Vector2 mousePosition)
+    private void Draw(Vector2 mousePosition)
     {
         var worldPosition = Game.ScreenLayout.Camera.ScreenToWorld(mousePosition);
         var gridPosition = _gridLayout.WorldToGrid(worldPosition);
@@ -67,7 +67,7 @@ public class WorldEditor : IDrawable
         _templateHolder.AddPlacement(_selectedTemplate, gridPosition);
     }
 
-    private void OnRemove(Vector2 mousePosition)
+    private void Remove(Vector2 mousePosition)
     {
         var worldPosition = Game.ScreenLayout.Camera.ScreenToWorld(mousePosition);
         var gridPosition = _gridLayout.WorldToGrid(worldPosition);
@@ -77,7 +77,7 @@ public class WorldEditor : IDrawable
         _templateHolder.RemovePlacement(gridPosition);
     }
 
-    private void OnZoom(float deltaZoom)
+    private void Zoom(float deltaZoom)
     {
         var zoom = Game.ScreenLayout.Camera.Zoom;
         zoom -= deltaZoom;
@@ -94,7 +94,7 @@ public class WorldEditor : IDrawable
         Game.ScreenLayout.Camera.Zoom = zoom;
     }
 
-    private void OnUpdateDrag(Vector2 mousePosition, Vector2 delta)
+    private void MoveCamera(Vector2 mousePosition, Vector2 delta)
     {
         var zoom = Game.ScreenLayout.Camera.Zoom;
         var worldDelta = delta / zoom;

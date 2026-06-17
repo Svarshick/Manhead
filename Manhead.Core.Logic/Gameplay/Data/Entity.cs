@@ -52,8 +52,7 @@ public partial class Entity : IComponentHolder
     
     public void AddComponent<T>(T component) where T : class, IComponent
     {
-        var existingComponent = GetComponent<T>();
-        if (existingComponent != null)
+        if (HasComponent(component.GetType()))
             throw new ArgumentException($"The component {component.GetType().Name} is already attached");
         
         _components.Add(component);

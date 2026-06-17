@@ -1,12 +1,13 @@
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 using MonoGame.Extended.Input;
 
 namespace Manhead.Core.Logic.Editor;
 
 public class Input : IUpdatable
 {
-    public event Action<Vector2>? Put;          // (ScreenPosition)
-    public event Action<Vector2>? Remove;       // (ScreenPosition)
+    public event Action<Vector2>? Draw;          // (ScreenPosition)
+    public event Action<Vector2>? Erase;       // (ScreenPosition)
     
     public event Action<Vector2>? StartDrag;    // (StartScreenPosition)
     public event Action<Vector2, Vector2>? UpdateDrag; // (CurrentScreenPosition, DragDelta)
@@ -15,17 +16,13 @@ public class Input : IUpdatable
     public event Action<float>? Zoom;           // (ScrollWheelDelta) - positive is scroll up/in, negative is scroll down/out
     private const float ZoomSensitivity = 0.003f;
 
-    private readonly ButtonTracker _lmbTracker = new();
-    private readonly ButtonTracker _rmbTracker = new();
+    private readonly ButtonTracker _dragTracker = new();
 
     public Input()
     {
-        _lmbTracker.Clicked += pos => Put?.Invoke(pos);
-        _lmbTracker.DragStarted += pos => StartDrag?.Invoke(pos);
-        _lmbTracker.DragUpdated += (pos, delta) => UpdateDrag?.Invoke(pos, delta);
-        _lmbTracker.DragEnded += pos => EndDrag?.Invoke(pos);
-
-        _rmbTracker.Clicked += pos => Remove?.Invoke(pos);
+        _dragTracker.DragStarted += pos => StartDrag?.Invoke(pos);
+        _dragTracker.DragUpdated += (pos, delta) => UpdateDrag?.Invoke(pos, delta);
+        _dragTracker.DragEnded += pos => EndDrag?.Invoke(pos);
     }
     
     public void Update()
@@ -34,8 +31,23 @@ public class Input : IUpdatable
         var mouseState = MouseExtended.GetState();
         var currentMousePos = mouseState.Position.ToVector2();
 
-        _lmbTracker.Process(mouseState.IsButtonDown(MouseButton.Left), currentMousePos);
-        _rmbTracker.Process(mouseState.IsButtonDown(MouseButton.Right), currentMousePos);
+        if (keyboardState.IsKeyDown(Keys.LeftControl) || keyboardState.IsKeyDown(Keys.RightControl))
+        {
+            _dragTracker.Process(mouseState.IsButtonDown(MouseButton.Left), currentMousePos);
+        }
+        else
+        {
+            _dragTracker.Process(false, currentMousePos);
+            if (mouseState.IsButtonDown(MouseButton.Left))
+            {
+                Draw?.Invoke(currentMousePos);
+            }
+        }
+
+        if (mouseState.IsButtonDown(MouseButton.Right))
+        {
+            Erase?.Invoke(currentMousePos);
+        }
 
         if (mouseState.DeltaScrollWheelValue != 0)
         {

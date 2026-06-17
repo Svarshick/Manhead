@@ -21,7 +21,7 @@ public class ComponentList : ContainerRuntime, IDisposable
         private readonly Button _rmButton;
         private readonly GraphicalUiElement _componentVisual; 
         
-        private IDisposable _subscription;
+        private IDisposable? _subscription;
 
         public ListElement(IComponent component, ComponentList componentList)
         {
@@ -89,7 +89,7 @@ public class ComponentList : ContainerRuntime, IDisposable
         public void Dispose()
         {
             _rmButton.Click -= RemoveIt;
-            _subscription.Dispose();
+            _subscription?.Dispose();
         }
 
         private void RemoveIt(object? sender, EventArgs e)
