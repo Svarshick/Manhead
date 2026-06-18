@@ -1,12 +1,9 @@
-using Apos.Shapes;
-using Gum.Wireframe;
 using Manhead.Core.Logic.Editor;
 using Manhead.Core.Logic.Editor.UI.Common;
-using Manhead.Core.Logic.WorldSpace;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
-using MonoGameAndGum.Renderables;
+using MonoGame.Extended.Screens;
 using MonoGameGum;
 
 namespace Manhead.Core.Logic;
@@ -18,21 +15,19 @@ public sealed class Game : Microsoft.Xna.Framework.Game
     public readonly static bool IsDesktop = OperatingSystem.IsMacOS() || OperatingSystem.IsLinux() || OperatingSystem.IsWindows();
 
     public static DefaultSystem DefaultSystem = new();
-    
+
     public static ScreenLayout ScreenLayout { get; private set; }
     public static SpriteBatch SpriteBatch { get; private set; }
     public static ContentManager Content { get; private set; }
     public static GumService GumService => GumService.Default;
 
-    private GraphicsDeviceManager _graphicsDeviceManager;
-
-    private Input _input;
-    private GridLayout _gridLayout;
-    private WorldEditor _editor;
+    private readonly GraphicsDeviceManager _graphics;
+    public readonly ScreenManager ScreenManager;
 
     public Game()
     {
-        _graphicsDeviceManager = new GraphicsDeviceManager(this);
+        _graphics = new GraphicsDeviceManager(this);
+        ScreenManager = new ScreenManager();
     }
 
     protected override void Initialize()
@@ -40,7 +35,8 @@ public sealed class Game : Microsoft.Xna.Framework.Game
         base.Initialize();
         InitScreen();
         InitSystems();
-        DoStuff();
+        TestStuff();
+        ScreenManager.ShowScreen(new EditScreen(this));
         return;
 
         void InitScreen()
@@ -48,40 +44,38 @@ public sealed class Game : Microsoft.Xna.Framework.Game
             IsMouseVisible = true;
             ScreenLayout = new ScreenLayout(Window, GraphicsDevice);
             ScreenLayout.FollowPosition(Vector2.Zero);
-            _graphicsDeviceManager.PreferredBackBufferWidth = ScreenLayout.WidthResolution;
-            _graphicsDeviceManager.PreferredBackBufferHeight = ScreenLayout.HeightResolution;
-            _graphicsDeviceManager.IsFullScreen = true;
-            _graphicsDeviceManager.ApplyChanges();
+            _graphics.PreferredBackBufferWidth = ScreenLayout.WidthResolution;
+            _graphics.PreferredBackBufferHeight = ScreenLayout.HeightResolution;
+            _graphics.IsFullScreen = true;
+            _graphics.ApplyChanges();
             
+            Services.AddService(ScreenLayout);
         }
         
         void InitSystems()
         {
             GumService.Initialize(this);
-            //ShapeRenderer.Self.Initialize();
             GumService.UseSingleThreadedAsync();
             
             SpriteBatch = new SpriteBatch(GraphicsDevice);
             Content = base.Content;
-            _input = new Input();
-            _gridLayout = new GridLayout(ScreenLayout.ToPixels(1, 1));
-            _editor = new WorldEditor(_input.Editor, GraphicsDevice, _gridLayout);
+
+            Services.AddService(Content);
+            Services.AddService(SpriteBatch);
         }
         
-        void DoStuff()
+        void TestStuff()
         {
-            //some tests here
         }
     }
 
     protected override void Update(GameTime gameTime)
     {
         Time.Update(gameTime);
-        _input.Update();
+        ScreenManager.Update(gameTime);
         GumService.Update(gameTime);
-        //Console.WriteLine(GumService.Cursor.GetEventFailureReason("SearchDialog"));
         MonoTask.Update();
-        GameObjectPool.Update();
+        //GameObjectPool.Update();
         
         base.Update(gameTime);
         LateUpdate();
@@ -89,25 +83,14 @@ public sealed class Game : Microsoft.Xna.Framework.Game
 
     private void LateUpdate()
     {
-        _input.LateUpdate();
-        GameObjectPool.LateUpdate();
+        //GameObjectPool.LateUpdate();
     }
 
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Gray);
-
-        SpriteBatch.Begin(
-            sortMode: SpriteSortMode.FrontToBack,
-            rasterizerState: RasterizerState.CullNone,
-            transformMatrix: ScreenLayout.Camera.GetViewMatrix()
-        );
-
-        _editor.Draw();
-        GameObjectPool.Draw();
-
-        SpriteBatch.End();
-
+        //GameObjectPool.Draw();
+        ScreenManager.Draw(gameTime);
         GumService.Draw();
         base.Draw(gameTime);
     }

@@ -4,7 +4,7 @@ using Manhead.Core.Logic.Gameplay.Data.Components;
 
 namespace Manhead.Core.Logic.Editor.UI.Components;
 
-public static class ComponentViewFactory
+public static class ComponentUIFactory
 {
     public static GraphicalUiElement Create(IComponent component, out IDisposable? disposable)
     {
@@ -12,13 +12,13 @@ public static class ComponentViewFactory
         {
             case Visible visible:
             {
-                var view = new VisibleView(visible);
+                var view = new VisibleUI(visible);
                 disposable = view;
                 return view;
             }
             case Wall wall:
             {
-                var view = new WallView(wall);
+                var view = new WallUI(wall);
                 disposable = view;
                 return view;
             }
@@ -26,6 +26,12 @@ public static class ComponentViewFactory
             {
                 disposable = null;
                 return new ContainerRuntime();
+            }
+            case Moving moving:
+            {
+                var view = new MovingUI(moving);
+                disposable = view;
+                return view;
             }
             default:
             {

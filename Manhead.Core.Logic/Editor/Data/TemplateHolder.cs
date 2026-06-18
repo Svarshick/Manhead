@@ -9,15 +9,15 @@ namespace Manhead.Core.Logic.Editor.Data;
 public class TemplateHolder
 {
     public readonly ObservableDictionary<Template, List<Placement>> Templates = new();
-    private readonly Field<Placement> _field;
+    public readonly Field<Placement> Placements;
     public readonly TemplateViewHolder TemplatesView;
-
+    
     public TemplateHolder(GridLayout gridLayout, int width, int height)
     {
         var viewBuilder = new ViewBuilder(gridLayout);
         var viewHolder = new TemplateViewHolder(viewBuilder, gridLayout, width, height);
         TemplatesView = viewHolder;
-        _field = new(width, height);
+        Placements = new(width, height);
     }
 
     public void AddTemplate(Template template)
@@ -47,27 +47,27 @@ public class TemplateHolder
             }
         }
         Templates[template].Add(new Placement(template, position));
-        _field[position].Add(new Placement(template, position));
+        Placements[position].Add(new Placement(template, position));
         TemplatesView.AddPlacement(template, position);
     }
 
     public void RemovePlacement(Point position)
     {
-        var template = _field[position].First().Template;
-        _field[position].Clear();
+        var template = Placements[position].First().Template;
+        Placements[position].Clear();
         Templates[template].RemoveAll(placement => placement.Position == position);
         TemplatesView.RemovePlacement(position);
     }
 
-    public Placement GetPlacement(Point position) => _field[position].First();
+    public Placement GetPlacement(Point position) => Placements[position].First();
     
     public bool IsFree(Point position)
     {
-        return _field.InBounds(position) && _field[position].Count <= 0;
+        return Placements.InBounds(position) && Placements[position].Count <= 0;
     }
 
     public bool IsFilled(Point position)
     {
-        return _field.InBounds(position) && _field[position].Count > 0;
+        return Placements.InBounds(position) && Placements[position].Count > 0;
     }
 }

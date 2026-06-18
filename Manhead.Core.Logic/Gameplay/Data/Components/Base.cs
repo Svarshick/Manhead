@@ -20,4 +20,5 @@ public sealed class ComponentAttribute(Kind kind) : Attribute
 public interface IComponent : IDisposable
 {
     public Subject<string> Changed { get; }
+    public IComponent Clone();
 }

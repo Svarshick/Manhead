@@ -7,11 +7,11 @@ using R3;
 
 namespace Manhead.Core.Logic.Editor.UI.Components;
 
-public class WallView : ContainerRuntime, IDisposable
+public class WallUI : ContainerRuntime, IDisposable
 {
     private readonly IDisposable _subscriptions;
 
-    public WallView(Wall component)
+    public WallUI(Wall component)
     {
         var stack = new StackPanel
         {

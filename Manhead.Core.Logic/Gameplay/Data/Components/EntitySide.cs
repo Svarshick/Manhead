@@ -11,6 +11,7 @@ namespace Manhead.Core.Logic.Gameplay.Data.Components;
 public partial class Crossroad : IComponent
 {
     Subject<string> IComponent.Changed => Changed;
+    public IComponent Clone() => new Crossroad { Direction = Direction };
 }
 
 [Component(Kind.Side)]
@@ -20,4 +21,5 @@ public partial class Crossroad : IComponent
 public partial class Wall : IComponent
 {
     Subject<string> IComponent.Changed => Changed;
+    public IComponent Clone() => new Wall { HP = HP, Color = Color };
 }

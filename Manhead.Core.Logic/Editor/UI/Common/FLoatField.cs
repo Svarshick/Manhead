@@ -4,12 +4,12 @@ using R3;
 
 namespace Manhead.Core.Logic.Editor.UI.Common;
 
-public class IntField<TProperty> : TextBox, IDisposable
-    where TProperty : struct, IProperty<int>
+public class FloatField<TProperty> : TextBox, IDisposable
+    where TProperty : struct, IProperty<float>
 {
     private readonly IDisposable _subscription;
     
-    public IntField(TProperty property)
+    public FloatField(TProperty property)
     {
         Name = property.Name;
         Text = property.Value.ToString();

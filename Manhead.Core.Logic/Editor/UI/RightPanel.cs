@@ -31,8 +31,8 @@ public class RightPanel : ContainerRuntime
 
         var outerContentPanel = new RectangleRuntime
         {
-            FillColor = EditorView.PanelBgColor,
-            StrokeColor = EditorView.PanelBgColor,
+            FillColor = EditorUI.PanelBgColor,
+            StrokeColor = EditorUI.PanelBgColor,
             WidthUnits = DimensionUnitType.RelativeToParent,
             HeightUnits = DimensionUnitType.RelativeToParent,
             Width = 0,

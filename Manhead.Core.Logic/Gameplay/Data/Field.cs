@@ -33,8 +33,8 @@ public class Field<T>
         0 <= x && x < Width && 
         0 <= y && y < Height;
     
-    public List<T> this[Point position] =>  _data[position.X][position.Y];
-    public Column this[int x] => new Column(_data[x]);
+    public List<T> this[Point position] => _data[position.X][position.Y];
+    public Column this[int x] => new (_data[x]);
     
     public readonly struct Column(List<T>[] data)
     {

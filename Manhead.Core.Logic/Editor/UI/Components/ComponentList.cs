@@ -78,7 +78,7 @@ public class ComponentList : ContainerRuntime, IDisposable
             _rmButton.Click += RemoveIt;
             headerGrid.AddChild(_rmButton, 0, 1);
 
-            var componentView = ComponentViewFactory.Create(component, out _subscription);
+            var componentView = ComponentUIFactory.Create(component, out _subscription);
             componentView.WidthUnits = DimensionUnitType.RelativeToParent;
             componentView.HeightUnits = DimensionUnitType.RelativeToChildren;
             componentView.Width = 0;

@@ -19,10 +19,10 @@ public static class Space
         return (Direction)(((int)direction + (int)lookDirection) % 4);
     }
 
-    public static Direction GetFacingSideDirection(Direction fromDirection, Direction objectLookDirection)
+    public static Direction SideVisibleFrom(Direction fromDirection, Direction objectLookDirection)
     {
-        //fromDirection+2 get the global direction of object's side.
-        //-objectLookDirection transform global to local (we expect local side direction) 
-        return (Direction)(((int)fromDirection + 2 - (int)objectLookDirection) % 4);
+        //get fromDirection' for object system coordinates by -objectLookDirection
+        //get opposite to fromDirection' (actual side) by fromDirection'+2
+        return (Direction)(((int)fromDirection - (int)objectLookDirection + 2) % 4);
     }
 }

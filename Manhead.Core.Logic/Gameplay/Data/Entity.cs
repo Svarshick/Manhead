@@ -1,4 +1,5 @@
 using Manhead.Core.Logic.Gameplay.Data.Components;
+using Manhead.Core.Logic.WorldSpace;
 using Microsoft.Xna.Framework;
 using ModelMediator.Abstractions;
 using ObservableCollections;
@@ -18,6 +19,7 @@ public interface IComponentHolder
 
 [Model]
 [Prop<Point>("Position")]
+[Prop<Direction>("LookDirection")]
 public partial class Entity : IComponentHolder
 {
     public readonly EntitySide LeftSide = new();
@@ -27,6 +29,28 @@ public partial class Entity : IComponentHolder
 
     public IReadOnlyObservableList<IComponent> Components => _components;
     private readonly ObservableList<IComponent> _components = new();
+
+    public EntitySide GetSide(Direction side)
+    {
+        return side switch
+        {
+            Direction.Up => FrontSide,
+            Direction.Down => BackSide,
+            Direction.Left => LeftSide,
+            Direction.Right => RightSide,
+            _ => throw new ArgumentOutOfRangeException(nameof(side), side, null)
+        };
+    }
+
+    private Entity(EntitySide leftSide, EntitySide rightSide, EntitySide frontSide, EntitySide backSide)
+    {
+        LeftSide = leftSide;
+        RightSide = rightSide;
+        FrontSide = frontSide;
+        BackSide = backSide;
+        Changed = new();
+        _disposables = default;
+    }
     
     public bool HasComponent(Type type)
     {
@@ -49,12 +73,12 @@ public partial class Entity : IComponentHolder
 
         return null;
     }
-    
+
     public void AddComponent<T>(T component) where T : class, IComponent
     {
         if (HasComponent(component.GetType()))
             throw new ArgumentException($"The component {component.GetType().Name} is already attached");
-        
+
         _components.Add(component);
         Changed.OnNext(nameof(Components));
     }
@@ -89,6 +113,21 @@ public partial class Entity : IComponentHolder
         }
 
         throw new ArgumentException($"The component {typeof(T).Name} isn't attached");
+    }
+
+    public Entity Clone()
+    {
+        var leftSide = LeftSide.Clone();
+        var rightSide = RightSide.Clone();
+        var frontSide = FrontSide.Clone();
+        var backSide = BackSide.Clone();
+        var entity = new Entity(leftSide, rightSide, frontSide, backSide);
+        foreach (var component in Components)
+        {
+            entity.AddComponent(component.Clone());
+        }
+        
+        return entity;
     }
 }
 
@@ -160,5 +199,16 @@ public partial class EntitySide : IComponentHolder
         }
 
         throw new ArgumentException($"The component {type.Name} isn't attached");
+    }
+    
+    public EntitySide Clone()
+    {
+        var entitySide = new EntitySide();
+        foreach (var component in Components)
+        {
+            entitySide.AddComponent(component.Clone());
+        }
+
+        return entitySide;
     }
 }

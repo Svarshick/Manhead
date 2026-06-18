@@ -15,9 +15,9 @@ namespace Manhead.Core.Logic.Gameplay.Movement
             _gridLayout = gridLayout;
         }
 
-        private async Task Move(Entity entity, Transform view, Direction direction, float speed)
+        public async Task Move(Entity entity, View.View view, Direction direction, float speed)
         {
-            var oldPosition = _gridLayout.WorldToGrid(view.Position);
+            var oldPosition = entity.Position;
             var newPosition = oldPosition + direction.ToPoint();
             if (!_field.InBounds(newPosition))
                 throw new ArgumentOutOfRangeException($"cell in {newPosition} does not exist");
@@ -29,6 +29,7 @@ namespace Manhead.Core.Logic.Gameplay.Movement
             var newCell = _field[newPosition];
             oldCell.Remove(entity);
             newCell.Add(entity);
+            entity.Position = newPosition;
         }
 
         public bool CanMove(Point fromPosition, Direction toDirection)

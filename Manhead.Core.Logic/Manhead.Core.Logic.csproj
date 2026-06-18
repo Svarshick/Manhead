@@ -14,8 +14,8 @@
     <Reference Include="ModelMediator.Abstractions">
       <HintPath>/home/sable/MonoGame/Codegen/ModelMediator/ModelMediator.Abstractions/bin/Debug/net10.0/ModelMediator.Abstractions.dll</HintPath>
     </Reference>
-    <Analyzer Include="../Analyzers/ModelMediator.dll" />
-    <Analyzer Include="../Analyzers/Scriban.Signed.dll" />
+    <Analyzer Include="/home/sable/MonoGame/Codegen/ModelMediator/ModelMediator/bin/Debug/netstandard2.0/ModelMediator.dll" />
+    <Analyzer Include="/home/sable/MonoGame/Codegen/ModelMediator/ModelMediator/bin/Debug/netstandard2.0/Scriban.Signed.dll" />
   </ItemGroup>
   
   <ItemGroup>

@@ -6,9 +6,9 @@ public enum Direction
 {
     //order is IMPORTANT
     Up,
+    Right,
     Down,
     Left,
-    Right,
     Ambiguous
 }
 

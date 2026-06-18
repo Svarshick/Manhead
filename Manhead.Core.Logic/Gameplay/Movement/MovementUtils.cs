@@ -6,23 +6,23 @@ namespace Manhead.Core.Logic.Gameplay.Movement;
 public static class MovementUtils
 {
     public static async Task MoveTowards(
-        Transform transform, 
+        View.View transform, 
         Vector2 target,
         float speed)
     {
         while (true)
         {
             var deltaTime = (float)Time.ElapsedGameTime.TotalSeconds;
-            var diff = target - transform.Position;
+            var diff = target - transform.AbsolutePosition;
             var shift = Vector2.Normalize(diff) * speed * deltaTime;
             if (shift.LengthSquared() < diff.LengthSquared())
             {
-                transform.Position += shift;
+                transform.RelativePosition += shift;
                 await MonoTask.NextFrame();
             }
             else
             {
-                transform.Position = target;
+                transform.RelativePosition = target;
                 return;
             }
         }

@@ -10,6 +10,7 @@ namespace Manhead.Core.Logic.Gameplay.Data.Components;
 public partial class Visible : IComponent 
 {
     Subject<string> IComponent.Changed => Changed;
+    public IComponent Clone() => new Visible { Color = Color };
 }
 
 [Component(Kind.Entity)]
@@ -17,4 +18,14 @@ public partial class Visible : IComponent
 public partial class Player : IComponent
 {
     Subject<string> IComponent.Changed => Changed;
+    public IComponent Clone() => new Player();
+}
+
+[Component(Kind.Entity)]
+[Model]
+[Prop<float>("Speed")]
+public partial class Moving : IComponent
+{
+    Subject<string> IComponent.Changed => Changed;
+    public IComponent Clone() => new Moving() { Speed = Speed };
 }

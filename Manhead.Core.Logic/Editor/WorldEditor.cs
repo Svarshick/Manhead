@@ -1,20 +1,18 @@
 using Manhead.Core.Logic.Editor.Data;
-using Manhead.Core.Logic.Editor.UI;
 using Manhead.Core.Logic.WorldSpace;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Manhead.Core.Logic.Editor;
 
-public class WorldEditor : IDrawable
+public class WorldEditor : IDrawable, IDisposable
 {
-    private readonly Input _input;
+    private readonly EditorInput _editorInput;
     private readonly GridLayout _gridLayout;
     private readonly GridView _gridView;
     private readonly TemplateHolder _templateHolder;
-    
     private readonly EventBus _eventBus;
-    private readonly EditorView _view;
+    
     private Template? _selectedTemplate;
     
     public readonly Texture2D SquareTexture;
@@ -24,29 +22,36 @@ public class WorldEditor : IDrawable
 
     
     public WorldEditor(
-        Input input, 
-        GraphicsDevice graphicsDevice, 
+        EditorInput editorInput,
+        EventBus eventBus,
+        TemplateHolder templateHolder,
         GridLayout gridLayout,
-        int width = 100,
-        int height = 100)
+        GraphicsDevice graphicsDevice)
     {
-        _input = input;
+        _editorInput = editorInput;
+        _eventBus = eventBus;
+        _templateHolder = templateHolder;
         _gridLayout = gridLayout;
         _gridView = new(graphicsDevice, gridLayout);
-        _gridView.Width = width;
-        _gridView.Height = height;
-       _templateHolder = new (_gridLayout, width, height);
+        _gridView.Width = templateHolder.Placements.Width;
+        _gridView.Height = templateHolder.Placements.Height;
        
-        _eventBus = new EventBus();
-        _view = new EditorView(_templateHolder, _eventBus);
-        
         SquareTexture = Game.Content.Load<Texture2D>("Content/Square");
        
-        _input.Draw += Draw;
-        _input.Erase += Remove;
-        _input.UpdateDrag += MoveCamera;
-        _input.Zoom += Zoom;
-        _eventBus.TemplateSelected += template => _selectedTemplate = template;
+        _editorInput.Draw += Draw;
+        _editorInput.Erase += Remove;
+        _editorInput.UpdateDrag += MoveCamera;
+        _editorInput.Zoom += Zoom;
+        _eventBus.TemplateSelected += TemplateSelected;
+    }
+
+    public void Dispose()
+    {
+        _editorInput.Draw -= Draw;
+        _editorInput.Erase -= Remove;
+        _editorInput.UpdateDrag -= MoveCamera;
+        _editorInput.Zoom -= Zoom;
+        _eventBus.TemplateSelected -= TemplateSelected;
     }
     
     private void Draw(Vector2 mousePosition)
@@ -99,6 +104,11 @@ public class WorldEditor : IDrawable
         var zoom = Game.ScreenLayout.Camera.Zoom;
         var worldDelta = delta / zoom;
         Game.ScreenLayout.Camera.Position -= worldDelta;
+    }
+
+    private void TemplateSelected(Template? template)
+    {
+        _selectedTemplate = template;
     }
 
     public void Draw()

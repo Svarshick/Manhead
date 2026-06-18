@@ -7,11 +7,11 @@ using R3;
 
 namespace Manhead.Core.Logic.Editor.UI.Components;
 
-public class VisibleView : ContainerRuntime, IDisposable 
+public class VisibleUI : ContainerRuntime, IDisposable 
 {
     private readonly IDisposable _subscriptions;
     
-    public VisibleView(Visible component)
+    public VisibleUI(Visible component)
     {
         var stack = new StackPanel
         {

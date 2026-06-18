@@ -4,7 +4,7 @@ using MonoGame.Extended.Input;
 
 namespace Manhead.Core.Logic.Editor;
 
-public class Input : IUpdatable
+public class EditorInput : IUpdatable
 {
     public event Action<Vector2>? Draw;          // (ScreenPosition)
     public event Action<Vector2>? Erase;       // (ScreenPosition)
@@ -18,7 +18,7 @@ public class Input : IUpdatable
 
     private readonly ButtonTracker _dragTracker = new();
 
-    public Input()
+    public EditorInput()
     {
         _dragTracker.DragStarted += pos => StartDrag?.Invoke(pos);
         _dragTracker.DragUpdated += (pos, delta) => UpdateDrag?.Invoke(pos, delta);

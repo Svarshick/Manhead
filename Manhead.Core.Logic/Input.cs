@@ -16,8 +16,7 @@ public class Input : IUpdatable
     public InputOwner InputOwner { get; private set; } = InputOwner.None;
     
     private IUpdatable _gameInput;
-    public readonly Gameplay.Input Gameplay = new();
-    public readonly Editor.Input Editor = new();
+    public readonly Editor.EditorInput Editor = new();
     
     private readonly ICursor _defaultCursor;
     private readonly ICursor _disabledCursor;
