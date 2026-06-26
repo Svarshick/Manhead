@@ -33,7 +33,7 @@ public class ComponentList : ContainerRuntime, IDisposable
             Width = 0;
             Height = 0;
             StrokeColor = Color.Transparent;
-            FillColor = Color.Transparent;
+            IsFilled = false;
 
             var stackPanel = new StackPanel
             {

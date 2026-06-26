@@ -4,7 +4,7 @@ using Gum.Wireframe;
 
 namespace Manhead.Core.Logic.Editor.UI.Components;
 
-public class Field : Grid
+public class Field : StackPanel
 {
     public Field(string name, GraphicalUiElement editor)
     {
@@ -12,12 +12,11 @@ public class Field : Grid
         Width = 0;
         HeightUnits = DimensionUnitType.RelativeToChildren;
         Height = 0;
+        Orientation = Orientation.Vertical;
             
-        RowDefinitions.Add(new RowDefinition(new GridLength(1, GridUnitType.Auto)));
-        RowDefinitions.Add(new RowDefinition(new GridLength(1, GridUnitType.Auto)));
         var label = new Label { Text = name };
-        AddChild(label, 0, 0);
-        AddChild(editor, 1, 0);
+        AddChild(label);
+        AddChild(editor);
     }
 
     public Field(string name, FrameworkElement editor) : this(name, editor.Visual)

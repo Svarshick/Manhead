@@ -19,8 +19,9 @@
   </ItemGroup>
   
   <ItemGroup>
-    <PackageReference Include="Gum.MonoGame" Version="2026.6.6.1" />
-    <PackageReference Include="Gum.Shapes.MonoGame" Version="2026.6.6.1" />
+    <PackageReference Include="Gum.MonoGame" Version="2026.6.14.1-preview.1" />
+    <PackageReference Include="Gum.Shapes.MonoGame" Version="2026.6.14.1-preview.1" />
+    <PackageReference Include="Apos.Shapes" Version="0.6.10-alpha" />
     <PackageReference Include="MonoGame.Extended" Version="6.0.0" />
     <PackageReference Include="MonoGame.Framework.Native" Version="3.8.5-preview.6">
       <PrivateAssets>All</PrivateAssets>

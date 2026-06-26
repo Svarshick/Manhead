@@ -10,35 +10,31 @@ namespace Manhead.Core.Logic.Editor.UI.Common;
 public class ColorField<TProperty> : ContainerRuntime, IDisposable
     where TProperty : struct, IProperty<Color>
 {
-    private sealed class TextSlider : ContainerRuntime 
+    private sealed class TextSlider : StackPanel 
     {
         public readonly Slider Slider;
         public readonly Label Label;
 
         public TextSlider()
         {
-            var grid = new Grid
+            WidthUnits = DimensionUnitType.RelativeToParent;
+            HeightUnits = DimensionUnitType.RelativeToChildren;
+            Width = 0;
+            Height = 0;
+            Orientation = Orientation.Horizontal;
+
+            Label = new Label
             {
-                WidthUnits = DimensionUnitType.RelativeToParent,
-                HeightUnits = DimensionUnitType.RelativeToChildren,
-                Width = 0,
-                Height = 0,
-                ColumnDefinitions =
-                {
-                    new ColumnDefinition(new GridLength(1, GridUnitType.Auto)),
-                    new ColumnDefinition(new GridLength(1, GridUnitType.Star)),
-                }
+                WidthUnits = DimensionUnitType.Absolute,
+                Width = 50,
             };
-            this.AddChild(grid);
-                
-            Label = new Label();
             Slider = new Slider
             {
                 WidthUnits = DimensionUnitType.RelativeToParent,
-                Width = 0,
+                Width = -Label.Width,
             };
-            grid.AddChild(Label, 0, 0);
-            grid.AddChild(Slider, 0, 1);
+            AddChild(Label);
+            AddChild(Slider);
         }
     }
     
@@ -138,6 +134,7 @@ public class ColorField<TProperty> : ContainerRuntime, IDisposable
             Width = 0,
             Height = 30,
             FillColor = property.Value,
+            IsFilled = true
         };
         stack.AddChild(preview);
 
@@ -157,7 +154,7 @@ public class ColorField<TProperty> : ContainerRuntime, IDisposable
         {
             property.TrySet(property.Value with { A = (byte)aSlider.Slider.Value });
         };
-            
+        
         var rSubscription= property.Changed
             .Subscribe(rSlider, static (next, slider) =>
             {

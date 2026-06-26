@@ -9,7 +9,7 @@ namespace Manhead.Core.Logic.Editor.UI;
 
 public class EditorUI : IDisposable
 {
-    public static readonly Color PanelBgColor = Color.Blue; //new (24, 24, 28, 240);
+    public static readonly Color PanelBgColor = new (24, 24, 28, 240);
     public static readonly Color ListBgColor = new (16, 16, 18, 255);
     public static readonly Color AccentGreen = new (46, 139, 87, 255);
     public static readonly Color AccentRed = new (178, 34, 34, 255);

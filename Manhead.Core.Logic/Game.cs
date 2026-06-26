@@ -75,7 +75,7 @@ public sealed class Game : Microsoft.Xna.Framework.Game
         ScreenManager.Update(gameTime);
         GumService.Update(gameTime);
         MonoTask.Update();
-        //GameObjectPool.Update();
+        GameObjectPool.Update();
         
         base.Update(gameTime);
         LateUpdate();
@@ -83,13 +83,13 @@ public sealed class Game : Microsoft.Xna.Framework.Game
 
     private void LateUpdate()
     {
-        //GameObjectPool.LateUpdate();
+        GameObjectPool.LateUpdate();
     }
 
     protected override void Draw(GameTime gameTime)
     {
         GraphicsDevice.Clear(Color.Gray);
-        //GameObjectPool.Draw();
+        GameObjectPool.Draw();
         ScreenManager.Draw(gameTime);
         GumService.Draw();
         base.Draw(gameTime);
