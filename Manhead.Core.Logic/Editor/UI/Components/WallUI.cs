@@ -22,12 +22,12 @@ public class WallUI : ContainerRuntime, IDisposable
         };
         this.AddChild(stack);
 
-        var hp = new IntField<Wall.HPProperty>(new Wall.HPProperty(Game.DefaultSystem, component))
+        var hp = new IntField<Wall.HPProperty>(new Wall.HPProperty(ManheadGame.DefaultSystem, component))
         {
             WidthUnits = DimensionUnitType.RelativeToParent,
             Width = 0,
         };
-        var color = new ColorField<Wall.ColorProperty>(new Wall.ColorProperty(Game.DefaultSystem, component))
+        var color = new ColorField<Wall.ColorProperty>(new Wall.ColorProperty(ManheadGame.DefaultSystem, component))
         {
             WidthUnits = DimensionUnitType.RelativeToParent,
             HeightUnits = DimensionUnitType.RelativeToChildren,

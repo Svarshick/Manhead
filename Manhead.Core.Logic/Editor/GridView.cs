@@ -18,33 +18,33 @@ public class GridView : IDrawable
         _gridLayout = gridLayout;
         _blankTexture = new Texture2D(graphicsDevice, 1, 1);
         _blankTexture.SetData(new[] { Color.White });
-        _gridEffect = Game.Content.Load<Effect>("Content/GridShader");
+        _gridEffect = ManheadGame.Content.Load<Effect>("Content/GridShader");
     }
     
     public void Draw()
     {
-        Game.SpriteBatch.End();
+        ManheadGame.SpriteBatch.End();
 
-        float zoom = Game.ScreenLayout.Camera.Zoom;
+        float zoom = ManheadGame.ScreenLayout.Camera.Zoom;
         Vector2 cellSizeInPixels = _gridLayout.CellSize * zoom;
 
         _gridEffect.Parameters["GridSize"]?.SetValue(new Vector2(Width, Height));
         _gridEffect.Parameters["LineColor"]?.SetValue(new Vector4(1f, 1f, 1f, 0.25f));
         _gridEffect.Parameters["CellSizeInPixels"]?.SetValue(cellSizeInPixels);
 
-        Game.SpriteBatch.Begin(
+        ManheadGame.SpriteBatch.Begin(
             sortMode: SpriteSortMode.Deferred,
             blendState: BlendState.AlphaBlend,
             samplerState: SamplerState.LinearClamp,
             rasterizerState: RasterizerState.CullNone,
             effect: _gridEffect,
-            transformMatrix: Game.ScreenLayout.Camera.GetViewMatrix()
+            transformMatrix: ManheadGame.ScreenLayout.Camera.GetViewMatrix()
         );
 
         float fieldWidth = Width * _gridLayout.CellSize.X;
         float fieldHeight = Height * _gridLayout.CellSize.Y;
 
-        Game.SpriteBatch.Draw(
+        ManheadGame.SpriteBatch.Draw(
             _blankTexture,
             Vector2.Zero,
             null,
@@ -56,13 +56,13 @@ public class GridView : IDrawable
             0f
         );
         
-        Game.SpriteBatch.End();
+        ManheadGame.SpriteBatch.End();
 
-        Game.SpriteBatch.Begin(
+        ManheadGame.SpriteBatch.Begin(
             sortMode: SpriteSortMode.FrontToBack,
             blendState: BlendState.AlphaBlend,
             rasterizerState: RasterizerState.CullNone,
-            transformMatrix: Game.ScreenLayout.Camera.GetViewMatrix()
+            transformMatrix: ManheadGame.ScreenLayout.Camera.GetViewMatrix()
         );
     }
 }

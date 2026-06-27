@@ -28,10 +28,10 @@ public class TemplateEditor : RectangleRuntime
         _templateNotSelected = CreateTemplateNotSelected();
         this.AddChild(_templateNotSelected);
         
-        eventBus.TemplateSelected += TemplateSelected;
+        eventBus.SelectTemplate += SelectTemplate;
     }
 
-    private void TemplateSelected(Template? template)
+    private void SelectTemplate(Template? template)
     {
         if (_currentTemplate == template)
             return;

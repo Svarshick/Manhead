@@ -112,7 +112,7 @@ public sealed class SpriteView : View
     protected override void DrawThis(Vector2 position)
     {
         Sprite.Depth = AbsoluteDepth;
-        Game.SpriteBatch.Draw(Sprite, position + AbsolutePosition);
+        ManheadGame.SpriteBatch.Draw(Sprite, position + AbsolutePosition);
     }
 }
 
@@ -124,7 +124,7 @@ public sealed class RectangleView : View
 
     protected override void DrawThis(Vector2 position)
     {
-        Game.SpriteBatch.DrawRectangle(
+        ManheadGame.SpriteBatch.DrawRectangle(
             position.X + AbsolutePosition.X - Width / 2,
             position.Y + AbsolutePosition.Y - Height / 2,
             Width,

@@ -22,7 +22,7 @@ public class MovingUI : ContainerRuntime, IDisposable
         };
         this.AddChild(stack);
 
-        var speed = new FloatField<Moving.SpeedProperty>(new Moving.SpeedProperty(Game.DefaultSystem, component))
+        var speed = new FloatField<Moving.SpeedProperty>(new Moving.SpeedProperty(ManheadGame.DefaultSystem, component))
         {
             WidthUnits = DimensionUnitType.RelativeToParent,
             Width = 0,

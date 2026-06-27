@@ -4,9 +4,11 @@ namespace Manhead.Core.Logic.Editor;
 
 public class EventBus
 {
-    public event Action<Template?>? TemplateSelected;
+    public event Action<Template?>? SelectTemplate;
     public event Action<LevelBlueprint>? RunLevel;
+    public event Action? ExitLevel;
     
-    public void SelectTemplate(Template? template) => TemplateSelected?.Invoke(template);
-    public void LevelToRun(LevelBlueprint level) => RunLevel?.Invoke(level);
+    public void RaiseSelectTemplate(Template? template) => SelectTemplate?.Invoke(template);
+    public void RaiseRunLevel(LevelBlueprint level) => RunLevel?.Invoke(level);
+    public void RaiseExitLevel() => ExitLevel?.Invoke();
 }

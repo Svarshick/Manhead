@@ -8,7 +8,7 @@ using MonoGameGum;
 
 namespace Manhead.Core.Logic;
 
-public sealed class Game : Microsoft.Xna.Framework.Game
+public sealed class ManheadGame : Game
 {
     public readonly static bool IsMobile = OperatingSystem.IsAndroid() || OperatingSystem.IsIOS();
 
@@ -24,7 +24,7 @@ public sealed class Game : Microsoft.Xna.Framework.Game
     private readonly GraphicsDeviceManager _graphics;
     public readonly ScreenManager ScreenManager;
 
-    public Game()
+    public ManheadGame()
     {
         _graphics = new GraphicsDeviceManager(this);
         ScreenManager = new ScreenManager();

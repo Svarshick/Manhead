@@ -11,7 +11,7 @@ internal class Program
     /// <param name="args">Command-line arguments passed to the application.</param>
     private static void Main(string[] args)
     {
-        using var game = new Game();
+        using var game = new ManheadGame();
         game.Run();
     }
 }

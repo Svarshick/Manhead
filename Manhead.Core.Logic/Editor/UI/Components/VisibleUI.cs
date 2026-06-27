@@ -22,7 +22,7 @@ public class VisibleUI : ContainerRuntime, IDisposable
         };
         this.AddChild(stack);
 
-        var color = new ColorField<Visible.ColorProperty>(new Visible.ColorProperty(Game.DefaultSystem, component))
+        var color = new ColorField<Visible.ColorProperty>(new Visible.ColorProperty(ManheadGame.DefaultSystem, component))
         {
             WidthUnits = DimensionUnitType.RelativeToParent,
             HeightUnits = DimensionUnitType.RelativeToChildren,

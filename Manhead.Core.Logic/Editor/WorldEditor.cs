@@ -36,13 +36,13 @@ public class WorldEditor : IDrawable, IDisposable
         _gridView.Width = templateHolder.Placements.Width;
         _gridView.Height = templateHolder.Placements.Height;
        
-        SquareTexture = Game.Content.Load<Texture2D>("Content/Square");
+        SquareTexture = ManheadGame.Content.Load<Texture2D>("Content/Square");
        
         _editorInput.Draw += Draw;
         _editorInput.Erase += Remove;
         _editorInput.UpdateDrag += MoveCamera;
         _editorInput.Zoom += Zoom;
-        _eventBus.TemplateSelected += TemplateSelected;
+        _eventBus.SelectTemplate += SelectTemplate;
     }
 
     public void Dispose()
@@ -51,17 +51,17 @@ public class WorldEditor : IDrawable, IDisposable
         _editorInput.Erase -= Remove;
         _editorInput.UpdateDrag -= MoveCamera;
         _editorInput.Zoom -= Zoom;
-        _eventBus.TemplateSelected -= TemplateSelected;
+        _eventBus.SelectTemplate -= SelectTemplate;
     }
     
     private void Draw(Vector2 mousePosition)
     {
-        var worldPosition = Game.ScreenLayout.Camera.ScreenToWorld(mousePosition);
+        var worldPosition = ManheadGame.ScreenLayout.Camera.ScreenToWorld(mousePosition);
         var gridPosition = _gridLayout.WorldToGrid(worldPosition);
         if (_templateHolder.IsFilled(gridPosition))
         {
             var placement = _templateHolder.GetPlacement(gridPosition);
-            _eventBus.SelectTemplate(placement.Template);
+            _eventBus.RaiseSelectTemplate(placement.Template);
             return;
         }
         
@@ -74,7 +74,7 @@ public class WorldEditor : IDrawable, IDisposable
 
     private void Remove(Vector2 mousePosition)
     {
-        var worldPosition = Game.ScreenLayout.Camera.ScreenToWorld(mousePosition);
+        var worldPosition = ManheadGame.ScreenLayout.Camera.ScreenToWorld(mousePosition);
         var gridPosition = _gridLayout.WorldToGrid(worldPosition);
         if (!_templateHolder.IsFilled(gridPosition))
             return;
@@ -84,7 +84,7 @@ public class WorldEditor : IDrawable, IDisposable
 
     private void Zoom(float deltaZoom)
     {
-        var zoom = Game.ScreenLayout.Camera.Zoom;
+        var zoom = ManheadGame.ScreenLayout.Camera.Zoom;
         zoom -= deltaZoom;
         if (zoom < _minZoom)
         {
@@ -96,17 +96,17 @@ public class WorldEditor : IDrawable, IDisposable
             zoom = _maxZoom;
         }
 
-        Game.ScreenLayout.Camera.Zoom = zoom;
+        ManheadGame.ScreenLayout.Camera.Zoom = zoom;
     }
 
     private void MoveCamera(Vector2 mousePosition, Vector2 delta)
     {
-        var zoom = Game.ScreenLayout.Camera.Zoom;
+        var zoom = ManheadGame.ScreenLayout.Camera.Zoom;
         var worldDelta = delta / zoom;
-        Game.ScreenLayout.Camera.Position -= worldDelta;
+        ManheadGame.ScreenLayout.Camera.Position -= worldDelta;
     }
 
-    private void TemplateSelected(Template? template)
+    private void SelectTemplate(Template? template)
     {
         _selectedTemplate = template;
     }

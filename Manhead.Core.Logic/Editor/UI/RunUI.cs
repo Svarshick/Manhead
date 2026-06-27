@@ -2,50 +2,21 @@ using Gum.Converters;
 using Gum.DataTypes;
 using Gum.Forms.Controls;
 using Gum.GueDeriving;
-using Manhead.Core.Logic.Editor.Data;
-using Microsoft.Xna.Framework;
 using RenderingLibrary.Graphics;
 
 namespace Manhead.Core.Logic.Editor.UI;
 
-public class EditorUI : ContainerRuntime
+public class RunUI : ContainerRuntime 
 {
-    public static readonly Color PanelBgColor = new (24, 24, 28, 240);
-    public static readonly Color ListBgColor = new (16, 16, 18, 255);
-    public static readonly Color AccentGreen = new (46, 139, 87, 255);
-    public static readonly Color AccentRed = new (178, 34, 34, 255);
-    public static readonly Color AccentTabActive = new (45, 45, 52, 255);
-
-    public EditorUI(TemplateHolder templateHolder, EventBus eventBus)
+    public RunUI(EventBus eventBus)
     {
         WidthUnits = DimensionUnitType.RelativeToParent;
         HeightUnits = DimensionUnitType.RelativeToParent;
         Width = 0;
         Height = 0;
-        
-        var leftPanel = new LeftPanel(templateHolder, eventBus)
-        {
-            WidthUnits = DimensionUnitType.PercentageOfParent,
-            HeightUnits = DimensionUnitType.PercentageOfParent,
-            Width = 20,
-            Height = 100
-        };
-
-        var rightPanel = new RightPanel(eventBus)
-        {
-            XOrigin = HorizontalAlignment.Right,
-            XUnits = GeneralUnitType.Percentage,
-            X = 100,
-            WidthUnits = DimensionUnitType.PercentageOfParent,
-            HeightUnits = DimensionUnitType.PercentageOfParent,
-            Width = 20,
-            Height = 100
-        };
-        this.AddChild(leftPanel);
         this.AddChild(CreateTopPanel());
-        this.AddChild(rightPanel);
         return;
-
+        
         Grid CreateTopPanel()
         {
             var panel = new Grid
@@ -69,16 +40,16 @@ public class EditorUI : ContainerRuntime
                 }
             };
 
-            var playButton = new Button
+            var exitButton = new Button
             {
                 WidthUnits = DimensionUnitType.PercentageOfParent,
                 HeightUnits = DimensionUnitType.PercentageOfParent,
                 Width = 100,
                 Height = 100,
-                Text = $"Play",
+                Text = $"Exit",
             };
-            playButton.Click += (_, _) => eventBus.RaiseRunLevel(new (templateHolder.Placements));
-            panel.AddChild(playButton, 0, 0);
+            exitButton.Click += (_, _) => eventBus.RaiseExitLevel();
+            panel.AddChild(exitButton, 0, 0);
 
             for (int i = 1; i < 4; i++)
             {

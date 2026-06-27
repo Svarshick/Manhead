@@ -20,7 +20,7 @@ public class EditScreen : GameScreen
     private WorldEditor _worldEditor;
     private EditorUI _editorUI;
    
-    public EditScreen(Game game) : base(game)
+    public EditScreen(ManheadGame manheadGame) : base(manheadGame)
     {
     }
 
@@ -34,19 +34,20 @@ public class EditScreen : GameScreen
         _gridLayout = new GridLayout(_screenLayout.ToPixels(1, 1));
        _templateHolder = new (_gridLayout, 100, 100);
        
-        _eventBus.RunLevel += level => ((Game)Game).ScreenManager.ReplaceScreen(new RunScreen((Game)Game, level));
+        _eventBus.RunLevel += level => ((ManheadGame)Game).ScreenManager.ReplaceScreen(new RunScreen((ManheadGame)Game, level));
     }
 
     public override void LoadContent()
     {
         _worldEditor = new WorldEditor(_input.Editor, _eventBus, _templateHolder, _gridLayout, GraphicsDevice);
         _editorUI = new EditorUI(_templateHolder, _eventBus);
+        ManheadGame.GumService.Root.AddChild(_editorUI);
     }
 
     public override void UnloadContent()
     {
         _worldEditor.Dispose();
-        _editorUI.Dispose();
+        ManheadGame.GumService.Root.RemoveChild(_editorUI);
     }
 
     public override void Update(GameTime gameTime)

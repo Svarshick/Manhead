@@ -55,18 +55,18 @@ public class TemplateList : ContainerRuntime, IDisposable
             
             _textBox.GotFocus += GotFocus;
             _textBox.LostFocus += LostFocus;
-            _eventBus.TemplateSelected += TemplateSelected;
+            _eventBus.SelectTemplate += SelectTemplate;
         }
         
         public void Dispose()
         {
             _textBox.GotFocus -= GotFocus;
             _textBox.LostFocus -= LostFocus;
-            _eventBus.TemplateSelected -= TemplateSelected;
+            _eventBus.SelectTemplate -= SelectTemplate;
             _subscription.Dispose();
         }
 
-        private void TemplateSelected(Template? template)
+        private void SelectTemplate(Template? template)
         {
             if (Template != template)
                 return;
@@ -101,7 +101,7 @@ public class TemplateList : ContainerRuntime, IDisposable
         {
             if (_state == ListElementState.Unselected)
             {
-                _eventBus.SelectTemplate(Template);
+                _eventBus.RaiseSelectTemplate(Template);
             }
             else
             {

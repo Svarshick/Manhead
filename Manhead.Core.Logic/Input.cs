@@ -24,7 +24,7 @@ public class Input : IUpdatable
     public Input()
     {
         _gameInput = Editor;
-        _defaultCursor = Game.GumService.Cursor;
+        _defaultCursor = ManheadGame.GumService.Cursor;
         _disabledCursor = new DisabledCursor();
     }
 
@@ -36,7 +36,7 @@ public class Input : IUpdatable
 
         if (InputOwner == InputOwner.None && hasInput)
         {
-            var uiInput = Game.GumService.Cursor?.VisualOver is not null;
+            var uiInput = ManheadGame.GumService.Cursor?.VisualOver is not null;
             InputOwner = uiInput ? InputOwner.UI : InputOwner.Game;
             //Console.WriteLine((uiInput ? "UI" : "Game") + $": {Time.TotalGameTime.TotalSeconds}");
         }
