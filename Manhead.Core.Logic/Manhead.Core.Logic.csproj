@@ -12,10 +12,10 @@
   
   <ItemGroup>
     <Reference Include="ModelMediator.Abstractions">
-      <HintPath>/home/sable/MonoGame/Codegen/ModelMediator/ModelMediator.Abstractions/bin/Debug/net10.0/ModelMediator.Abstractions.dll</HintPath>
+      <HintPath>../libs/ModelMediator.Abstractions.dll</HintPath>
     </Reference>
-    <Analyzer Include="../Analyzers/bin/Debug/netstandard2.0/ModelMediator.dll" />
-    <Analyzer Include="../Analyzers/bin/Debug/netstandard2.0/Scriban.Signed.dll" />
+    <Analyzer Include="../libs/ModelMediator.dll" />
+    <Reference Include="../libs/Scriban.Signed.dll" />
   </ItemGroup>
   
   <ItemGroup>
