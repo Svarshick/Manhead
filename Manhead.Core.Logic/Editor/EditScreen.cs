@@ -42,6 +42,7 @@ public class EditScreen : GameScreen
         _worldEditor = new WorldEditor(_input.Editor, _eventBus, _templateHolder, _gridLayout, GraphicsDevice);
         _editorUI = new EditorUI(_templateHolder, _eventBus);
         ManheadGame.GumService.Root.AddChild(_editorUI);
+        ManheadGame.Background = _editorUI;
     }
 
     public override void UnloadContent()

@@ -1,3 +1,5 @@
+using Gum.GueDeriving;
+using Gum.Wireframe;
 using Manhead.Core.Logic.Editor;
 using Manhead.Core.Logic.Editor.UI.Common;
 using Microsoft.Xna.Framework;
@@ -20,6 +22,7 @@ public sealed class ManheadGame : Game
     public static SpriteBatch SpriteBatch { get; private set; }
     public static ContentManager Content { get; private set; }
     public static GumService GumService => GumService.Default;
+    public static InteractiveGue Background;
 
     private readonly GraphicsDeviceManager _graphics;
     public readonly ScreenManager ScreenManager;

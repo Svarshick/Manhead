@@ -36,15 +36,14 @@ public class Input : IUpdatable
 
         if (InputOwner == InputOwner.None && hasInput)
         {
-            var uiInput = ManheadGame.GumService.Cursor?.VisualOver is not null;
+            var uiInput = ManheadGame.GumService.Cursor.VisualOver is { } visual
+                          && visual != ManheadGame.Background;
             InputOwner = uiInput ? InputOwner.UI : InputOwner.Game;
-            //Console.WriteLine((uiInput ? "UI" : "Game") + $": {Time.TotalGameTime.TotalSeconds}");
         }
 
         if (InputOwner != InputOwner.None && !hasInput)
         {
             InputOwner = InputOwner.None;
-            //Console.WriteLine("None" + $": {Time.TotalGameTime.TotalSeconds}");
         }
 
         switch (InputOwner)
