@@ -1,3 +1,6 @@
+using Autofac;
+using Gum;
+using Gum.Wireframe;
 using Manhead.Core.Logic.Editor.Data;
 using Manhead.Core.Logic.Editor.UI;
 using Manhead.Core.Logic.WorldSpace;
@@ -7,48 +10,58 @@ using MonoGame.Extended.Screens;
 
 namespace Manhead.Core.Logic.Editor;
 
-public class EditScreen : GameScreen
+public class EditScreen : Screen
 {
+    private readonly ILifetimeScope _scope;
+    
     private SpriteBatch _spriteBatch;
     private ScreenLayout _screenLayout;
-    
-    private Input _input;
-    private EventBus _eventBus;
-    private GridLayout _gridLayout;
-    private TemplateHolder _templateHolder;
-     
     private WorldEditor _worldEditor;
-    private EditorUI _editorUI;
+    private Input _input;
    
-    public EditScreen(ManheadGame manheadGame) : base(manheadGame)
+    public EditScreen(IContainer services)
     {
-    }
-
-    public override void Initialize()
-    {
-        _spriteBatch = Services.GetService<SpriteBatch>();
-        _screenLayout = Services.GetService<ScreenLayout>();
+        _scope = services.BeginLifetimeScope(builder =>
+        {
+            builder.RegisterType<EditorInput>().AsSelf().As<IUpdatable>().SingleInstance();
+            builder.RegisterType<Input>().SingleInstance();
+            builder.RegisterType<EventBus>().SingleInstance();
+            builder.Register<GridLayout>(context =>
+            {
+                var layout = context.Resolve<ScreenLayout>();
+                return new (layout.ToPixels(1, 1));
+            }).SingleInstance();;
+            builder.Register<TemplateHolder>(context =>
+            {
+                var gridLayout = context.Resolve<GridLayout>();
+                return new(gridLayout, 100, 100);
+            }).SingleInstance();;
+            builder.RegisterType<EditorUI>().AsSelf().As<InteractiveGue>().SingleInstance();;
+            builder.RegisterType<WorldEditor>().SingleInstance();
+        });
         
-        _input = new Input();
-        _eventBus = new();
-        _gridLayout = new GridLayout(_screenLayout.ToPixels(1, 1));
-       _templateHolder = new (_gridLayout, 100, 100);
-       
-        _eventBus.RunLevel += level => ((ManheadGame)Game).ScreenManager.ReplaceScreen(new RunScreen((ManheadGame)Game, level));
+        _spriteBatch = _scope.Resolve<SpriteBatch>();
+        _screenLayout = _scope.Resolve<ScreenLayout>();
+        _worldEditor = _scope.Resolve<WorldEditor>();
+        _input = _scope.Resolve<Input>();
+        var editorUI = _scope.Resolve<EditorUI>();
+        var gum = _scope.Resolve<GumService>();
+        gum.Root.AddChild(editorUI);
+
+        var eventBus = _scope.Resolve<EventBus>();
+        eventBus.RunLevel += level =>
+        {
+            var screenManager = _scope.Resolve<ScreenManager>();
+            screenManager.ReplaceScreen(new RunScreen(services, level));
+        };
     }
 
-    public override void LoadContent()
+    public override void Dispose()
     {
-        _worldEditor = new WorldEditor(_input.Editor, _eventBus, _templateHolder, _gridLayout, GraphicsDevice);
-        _editorUI = new EditorUI(_templateHolder, _eventBus);
-        ManheadGame.GumService.Root.AddChild(_editorUI);
-        ManheadGame.Background = _editorUI;
-    }
-
-    public override void UnloadContent()
-    {
-        _worldEditor.Dispose();
-        ManheadGame.GumService.Root.RemoveChild(_editorUI);
+        var gum = _scope.Resolve<GumService>();
+        var editorUI = _scope.Resolve<EditorUI>();
+        gum.Root.RemoveChild(editorUI);
+        _scope.Dispose();
     }
 
     public override void Update(GameTime gameTime)
@@ -62,7 +75,6 @@ public class EditScreen : GameScreen
         _input.LateUpdate();
     }
 
-
     public override void Draw(GameTime gameTime)
     {
         _spriteBatch.Begin(
@@ -70,9 +82,7 @@ public class EditScreen : GameScreen
             rasterizerState: RasterizerState.CullNone,
             transformMatrix: _screenLayout.Camera.GetViewMatrix()
         );
-        
         _worldEditor.Draw();
-        
         _spriteBatch.End();
     }
 }

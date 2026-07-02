@@ -1,3 +1,4 @@
+using Gum;
 using Gum.Forms;
 using Gum.Wireframe;
 using MonoGame.Extended.Input;
@@ -16,15 +17,20 @@ public class Input : IUpdatable
     public InputOwner InputOwner { get; private set; } = InputOwner.None;
     
     private IUpdatable _gameInput;
-    public readonly Editor.EditorInput Editor = new();
-    
     private readonly ICursor _defaultCursor;
     private readonly ICursor _disabledCursor;
+    private readonly GumService _gumService;
+    private readonly InteractiveGue _gumBackground; 
     
-    public Input()
+    public Input(
+        GumService gumService,
+        InteractiveGue gumBackground,
+        IUpdatable gameInput)
     {
-        _gameInput = Editor;
-        _defaultCursor = ManheadGame.GumService.Cursor;
+        _gameInput = gameInput;
+        _gumService = gumService;
+        _gumBackground = gumBackground;
+        _defaultCursor = _gumService.Cursor;
         _disabledCursor = new DisabledCursor();
     }
 
@@ -36,8 +42,8 @@ public class Input : IUpdatable
 
         if (InputOwner == InputOwner.None && hasInput)
         {
-            var uiInput = ManheadGame.GumService.Cursor.VisualOver is { } visual
-                          && visual != ManheadGame.Background;
+            var uiInput = _gumService.Cursor.VisualOver is { } visual
+                          && visual != _gumBackground;
             InputOwner = uiInput ? InputOwner.UI : InputOwner.Game;
         }
 

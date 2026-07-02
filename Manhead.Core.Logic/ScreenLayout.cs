@@ -7,15 +7,15 @@ namespace Manhead.Core.Logic;
 
 public class ScreenLayout
 {
-    public readonly int WidthResolution = 1920;
-    public readonly int HeightResolution = 1080;
-    public readonly float PixelsPerUnit = 100f;
+    public int WidthResolution = 1920;
+    public int HeightResolution = 1080;
+    public float PixelsPerUnit = 100f;
 
     public readonly OrthographicCamera Camera;
 
-    public ScreenLayout(GameWindow window, GraphicsDevice graphicsDevice)
+    public ScreenLayout(GraphicsDevice graphicsDevice)
     {
-        var viewportAdapter = new BoxingViewportAdapter(window, graphicsDevice, WidthResolution, HeightResolution);
+        var viewportAdapter = new DefaultViewportAdapter(graphicsDevice);
         Camera = new OrthographicCamera(viewportAdapter);
     }
 

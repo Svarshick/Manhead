@@ -1,3 +1,5 @@
+using Autofac;
+using Gum;
 using Manhead.Core.Logic.Editor.Data;
 using Manhead.Core.Logic.Editor.UI;
 using Manhead.Core.Logic.Gameplay;
@@ -8,43 +10,46 @@ using MonoGame.Extended.Screens;
 
 namespace Manhead.Core.Logic.Editor;
 
-public class RunScreen : GameScreen
+public class RunScreen : Screen
 {
-    private SpriteBatch _spriteBatch;
-    private ScreenLayout _screenLayout;
-
-    private LevelBlueprint _level;
-    private GameLoop _gameLoop;
-    private GridLayout _gridLayout;
-    private GameInput _input;
+    private readonly ILifetimeScope _scope;
     
-    private EventBus _eventBus;
-    private RunUI _runUI;
+    private readonly SpriteBatch _spriteBatch;
+    private readonly ScreenLayout _screenLayout;
+    private readonly GameLoop _gameLoop;
+    private readonly GameInput _input;
     
-    public RunScreen(ManheadGame manheadGame, LevelBlueprint level) : base(manheadGame)
+    public RunScreen(IContainer services, LevelBlueprint level)
     {
-        _level = level;
+        _scope = services.BeginLifetimeScope(builder =>
+        {
+            builder.RegisterInstance(level).SingleInstance();;
+            builder.RegisterType<GameInput>().SingleInstance();;
+            builder.RegisterType<EventBus>().SingleInstance();;
+            builder.Register<GridLayout>(context =>
+            {
+                var layout = context.Resolve<ScreenLayout>();
+                return new(layout.ToPixels(1, 1));
+            }).SingleInstance();;
+            builder.RegisterType<GameLoop>().SingleInstance();;
+            builder.RegisterType<RunUI>().SingleInstance();;
+        });
+        
+        _spriteBatch = _scope.Resolve<SpriteBatch>();
+        _screenLayout = _scope.Resolve<ScreenLayout>();
+        _input =  _scope.Resolve<GameInput>();
+        _gameLoop = _scope.Resolve<GameLoop>();
+        var runUI = _scope.Resolve<RunUI>();
+        var gum = _scope.Resolve<GumService>();
+        gum.Root.AddChild(runUI);
     }
 
-    public override void Initialize()
+    public override void Dispose()
     {
-        _spriteBatch = Services.GetService<SpriteBatch>();
-        _screenLayout = Services.GetService<ScreenLayout>();
-        _gridLayout = new GridLayout(_screenLayout.ToPixels(1, 1));
-        _input = new();
-        _eventBus = new();
-        _gameLoop = new GameLoop(_level, _input, _gridLayout);
-    }
-
-    public override void LoadContent()
-    {
-        _runUI = new RunUI(_eventBus);
-        ManheadGame.GumService.Root.AddChild(_runUI);
-    }
-    
-    public override void UnloadContent()
-    {
-        ManheadGame.GumService.Root.RemoveChild(_runUI);
+        var runUI = _scope.Resolve<RunUI>();
+        var gum = _scope.Resolve<GumService>();
+        gum.Root.RemoveChild(runUI);
+        _scope.Dispose();
     }
 
     public override void Update(GameTime gameTime)

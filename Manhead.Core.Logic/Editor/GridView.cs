@@ -1,5 +1,6 @@
 using Manhead.Core.Logic.WorldSpace;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Manhead.Core.Logic.Editor;
@@ -13,12 +14,15 @@ public class GridView : IDrawable
     public int Width;
     public int Height;
     
-    public GridView(GraphicsDevice graphicsDevice, GridLayout gridLayout)
+    public GridView(
+        GridLayout gridLayout,
+        GraphicsDevice graphicsDevice,
+        ContentManager contentManager)
     {
         _gridLayout = gridLayout;
         _blankTexture = new Texture2D(graphicsDevice, 1, 1);
         _blankTexture.SetData(new[] { Color.White });
-        _gridEffect = ManheadGame.Content.Load<Effect>("Content/GridShader");
+        _gridEffect = contentManager.Load<Effect>("Content/GridShader");
     }
     
     public void Draw()

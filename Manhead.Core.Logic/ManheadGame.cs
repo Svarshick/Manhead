@@ -1,12 +1,10 @@
-using Gum.GueDeriving;
-using Gum.Wireframe;
+using Autofac;
+using Gum;
 using Manhead.Core.Logic.Editor;
 using Manhead.Core.Logic.Editor.UI.Common;
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using MonoGame.Extended.Screens;
-using MonoGameGum;
 
 namespace Manhead.Core.Logic;
 
@@ -20,63 +18,97 @@ public sealed class ManheadGame : Game
 
     public static ScreenLayout ScreenLayout { get; private set; }
     public static SpriteBatch SpriteBatch { get; private set; }
-    public static ContentManager Content { get; private set; }
-    public static GumService GumService => GumService.Default;
-    public static InteractiveGue Background;
 
-    private readonly GraphicsDeviceManager _graphics;
-    public readonly ScreenManager ScreenManager;
+    public new IContainer Services { get; private set; }
+    
+    private GraphicsDeviceManager _graphicsDeviceManager;
+    private GumService _gumService;
+    private ScreenManager _screenManager;
+    
+    private bool _isResizing;
 
     public ManheadGame()
     {
-        _graphics = new GraphicsDeviceManager(this);
-        ScreenManager = new ScreenManager();
+        _graphicsDeviceManager = new GraphicsDeviceManager(this);
     }
 
     protected override void Initialize()
     {
-        base.Initialize();
+        var builder = new ContainerBuilder();
+        builder.RegisterInstance(this).SingleInstance();
+        builder.RegisterInstance(_graphicsDeviceManager).SingleInstance();
         InitScreen();
         InitSystems();
         TestStuff();
-        ScreenManager.ShowScreen(new EditScreen(this));
+        Services = builder.Build();
+        base.Initialize();
         return;
 
         void InitScreen()
         {
+            ScreenLayout = new ScreenLayout(GraphicsDevice);
             IsMouseVisible = true;
-            ScreenLayout = new ScreenLayout(Window, GraphicsDevice);
+            Window.AllowUserResizing = true;
+            Window.ClientSizeChanged += OnClientSizeChanged;
             ScreenLayout.FollowPosition(Vector2.Zero);
-            _graphics.PreferredBackBufferWidth = ScreenLayout.WidthResolution;
-            _graphics.PreferredBackBufferHeight = ScreenLayout.HeightResolution;
-            _graphics.IsFullScreen = true;
-            _graphics.ApplyChanges();
+            _graphicsDeviceManager.PreferredBackBufferWidth = ScreenLayout.WidthResolution;
+            _graphicsDeviceManager.PreferredBackBufferHeight = ScreenLayout.HeightResolution;
+            _graphicsDeviceManager.IsFullScreen = false; 
+            _graphicsDeviceManager.ApplyChanges();
             
-            Services.AddService(ScreenLayout);
+            builder.RegisterInstance(GraphicsDevice).SingleInstance();
+            builder.RegisterInstance(ScreenLayout).SingleInstance();
         }
-        
+
         void InitSystems()
         {
-            GumService.Initialize(this);
-            GumService.UseSingleThreadedAsync();
-            
-            SpriteBatch = new SpriteBatch(GraphicsDevice);
-            Content = base.Content;
+            _gumService = GumService.Default;
+            _gumService.Initialize(this);
+            _gumService.UseSingleThreadedAsync();
+            _gumService.EnableExpandToWindow();
 
-            Services.AddService(Content);
-            Services.AddService(SpriteBatch);
+            SpriteBatch = new SpriteBatch(GraphicsDevice);
+            _screenManager = new ScreenManager();
+
+            builder.RegisterInstance(Content).SingleInstance();
+            builder.RegisterInstance(_gumService).SingleInstance();
+            builder.RegisterInstance(SpriteBatch).SingleInstance();
+            builder.RegisterInstance(_screenManager).SingleInstance();
         }
-        
+
         void TestStuff()
         {
+        }
+    }
+
+    protected override void LoadContent()
+    {
+        base.LoadContent();
+        _screenManager.ShowScreen(new EditScreen(Services));
+    }
+
+    private void OnClientSizeChanged(object? sender, EventArgs e)
+    {
+        if (_isResizing) return;
+
+        if (Window.ClientBounds is { Width: > 0, Height: > 0 })
+        {
+            _isResizing = true;
+            ScreenLayout.WidthResolution = Window.ClientBounds.Width; 
+            ScreenLayout.HeightResolution = Window.ClientBounds.Height;
+            
+            _graphicsDeviceManager.PreferredBackBufferWidth = ScreenLayout.WidthResolution;
+            _graphicsDeviceManager.PreferredBackBufferHeight = ScreenLayout.HeightResolution;
+            _graphicsDeviceManager.ApplyChanges();
+            _isResizing = false;
         }
     }
 
     protected override void Update(GameTime gameTime)
     {
         Time.Update(gameTime);
-        ScreenManager.Update(gameTime);
-        GumService.Update(gameTime);
+        _screenManager.Update(gameTime);
+        _gumService.Update(gameTime);
         MonoTask.Update();
         GameObjectPool.Update();
         
@@ -93,8 +125,8 @@ public sealed class ManheadGame : Game
     {
         GraphicsDevice.Clear(Color.Gray);
         GameObjectPool.Draw();
-        ScreenManager.Draw(gameTime);
-        GumService.Draw();
+        _screenManager.Draw(gameTime);
+        _gumService.Draw();
         base.Draw(gameTime);
     }
 }

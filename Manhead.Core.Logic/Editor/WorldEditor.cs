@@ -1,6 +1,7 @@
 using Manhead.Core.Logic.Editor.Data;
 using Manhead.Core.Logic.WorldSpace;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
 namespace Manhead.Core.Logic.Editor;
@@ -26,17 +27,18 @@ public class WorldEditor : IDrawable, IDisposable
         EventBus eventBus,
         TemplateHolder templateHolder,
         GridLayout gridLayout,
+        ContentManager contentManager,
         GraphicsDevice graphicsDevice)
     {
         _editorInput = editorInput;
         _eventBus = eventBus;
         _templateHolder = templateHolder;
-        _gridLayout = gridLayout;
-        _gridView = new(graphicsDevice, gridLayout);
-        _gridView.Width = templateHolder.Placements.Width;
-        _gridView.Height = templateHolder.Placements.Height;
-       
-        SquareTexture = ManheadGame.Content.Load<Texture2D>("Content/Square");
+        _gridLayout = gridLayout; 
+        _gridView = new(gridLayout, graphicsDevice, contentManager);
+        _gridView.Width = _templateHolder.Placements.Width;
+        _gridView.Height = _templateHolder.Placements.Height;
+
+        SquareTexture = contentManager.Load<Texture2D>("Content/Square");
        
         _editorInput.Draw += Draw;
         _editorInput.Erase += Remove;
